@@ -480,6 +480,30 @@ button.kpi:hover{border-color:#D3D7DF;box-shadow:var(--sh-2)}
 .gb:hover{filter:brightness(1.08);box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--c)}
 .gtail{position:absolute;top:11.5px;height:4px;border-radius:2px;background:repeating-linear-gradient(45deg,var(--danger) 0 3px,transparent 3px 5px);cursor:pointer;z-index:1}
 .gppl{position:absolute;top:6.5px;font:500 11px/14px var(--font);color:var(--muted);white-space:nowrap;pointer-events:none}
+.gt-task{cursor:grab;padding-left:4px;background:#fff;transition:background .12s}
+.gt-task:hover{background:var(--surface-2)}
+.ggrip{display:grid;place-items:center;width:20px;height:22px;color:var(--faint);flex:none;touch-action:none;cursor:grab}
+.ggrip svg.i{width:14px;height:14px}
+.gt-task:hover .ggrip{color:var(--muted)}
+.gt-task .gname{padding-left:3px}
+.gnote{display:grid;place-items:center;color:#B98500;flex:none}
+.gnote svg.i{width:13px;height:13px}
+.gcount{color:var(--muted)}
+.gb{cursor:grab;touch-action:none}
+.gb .gh{position:absolute;top:-3px;bottom:-3px;width:10px;cursor:ew-resize;z-index:2;touch-action:none}
+.gb .gh.l{left:-5px}.gb .gh.r{right:-5px}
+.gb .gh::after{content:"";position:absolute;top:50%;left:50%;width:4px;height:12px;border-radius:2px;background:#fff;box-shadow:0 0 0 1.5px var(--c);transform:translate(-50%,-50%);opacity:0;transition:opacity .12s}
+.gb:hover .gh::after,.gb.dragging .gh::after{opacity:1}
+.gb.dragging{z-index:3;cursor:grabbing;box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--c),0 6px 14px rgba(27,32,48,.18)}
+.gt-busy,.gt-busy *{cursor:grabbing!important;user-select:none;-webkit-user-select:none}
+.gt-busy .gppl{opacity:0}
+.gmoving{opacity:.45}
+.gantt{position:relative}
+.gdrop{position:absolute;left:0;right:0;height:2px;background:var(--task);z-index:5;pointer-events:none;box-shadow:0 0 0 2px rgba(62,99,221,.18)}
+.note-area{width:100%;min-height:92px;resize:vertical;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:500 13.5px/1.55 var(--font);color:var(--ink);background:#FFFCF2;outline:none;transition:border-color .15s,box-shadow .15s}
+.note-area::placeholder{color:var(--faint)}
+.note-area:focus{border-color:#E8C766;box-shadow:0 0 0 4px rgba(224,161,0,.14)}
+.nstate{font:500 12px var(--font);color:var(--muted)}
 /* tooltip */
 .dtip{position:fixed;left:0;top:0;z-index:70;pointer-events:none;min-width:150px;max-width:290px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-3);padding:10px 12px 9px}
 .dtip .tv{font:700 15px/1.25 var(--font);color:var(--ink);letter-spacing:-.01em}
@@ -635,7 +659,7 @@ button.kpi:hover{border-color:#D3D7DF;box-shadow:var(--sh-2)}
           <div class="msep"></div>
           <button data-m="sample"><svg class="i" data-ic="refresh"></svg>Nạp dữ liệu mẫu</button>
           <button data-m="clear" class="danger"><svg class="i" data-ic="trash"></svg>Xóa toàn bộ dữ liệu</button>
-          <div class="mfoot">nodetodo 1.4, by Nguyễn Mạnh Hùng</div>
+          <div class="mfoot">nodetodo 1.5, by Nguyễn Mạnh Hùng</div>
         </div>
       </div>
     </div>
@@ -756,6 +780,7 @@ const ICON = {
   hand: '<path d="M9 11V5a1.5 1.5 0 0 1 3 0v5"/><path d="M12 10V4a1.5 1.5 0 0 1 3 0v6"/><path d="M15 10V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-2.7l-2.6-4.1a1.5 1.5 0 0 1 2.4-1.8L6 14V8a1.5 1.5 0 0 1 3 0v3"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   chev: '<path d="m6 9 6 6 6-6"/>',
+  grip: '<circle cx="9" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.3" fill="currentColor" stroke="none"/>',
   map: '<circle cx="6" cy="7" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="17" cy="18" r="2.6"/><path d="M8.6 6.8 15.4 6.2M8.1 8.9l7 7.3"/>',
   chart: '<path d="M4 20h16"/><path d="M7.5 16v-5M12 16V6M16.5 16v-8"/>',
   grid: '<circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/>'
@@ -780,7 +805,7 @@ const PRIORITY = {
   high: { label: 'Cao', color: '#F76B15' },
   urgent: { label: 'Khẩn cấp', color: '#D9363E' }
 };
-const FIELDS = { person: ['name', 'role', 'dept', 'phone', 'email', 'note'], task: ['name', 'project', 'status', 'progress', 'priority', 'start', 'due', 'note'] };
+const FIELDS = { person: ['name', 'role', 'dept', 'phone', 'email', 'note'], task: ['name', 'project', 'status', 'progress', 'priority', 'start', 'due', 'order', 'note'] };
 const KMIN = 0.15, KMAX = 3.2, MARGIN = 26;
 // physics
 const REP = -1100, REP_MAX2 = 460 * 460;
@@ -930,6 +955,7 @@ function normalize(raw) {
       n.priority = PRIORITY[r.priority] ? r.priority : 'med';
       n.due = /^\d{4}-\d{2}-\d{2}$/.test(r.due || '') ? r.due : '';
       n.start = /^\d{4}-\d{2}-\d{2}$/.test(r.start || '') ? r.start : '';
+      n.order = Number.isFinite(r.order) ? r.order : null;
     }
     n.x = Number.isFinite(+r.x) && r.x !== null && r.x !== '' ? +r.x : null;
     n.y = Number.isFinite(+r.y) && r.y !== null && r.y !== '' ? +r.y : null;
@@ -1535,6 +1561,13 @@ function draw(now) {
         ctx.fillStyle = PRIORITY[n.priority].color; circle(bx, by, br); ctx.fill();
       }
     }
+    if (n.note && n.note.trim() && r * k >= 7) {   // small note badge at the lower right
+      const bs = Math.max(5.5, 3.4 / k), bx = x + r * 0.72, by = y + r * 0.72;
+      ctx.fillStyle = '#fff'; circle(bx, by, bs + 1.6); ctx.fill();
+      ctx.fillStyle = '#E0A100'; circle(bx, by, bs); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(1, bs * 0.22);
+      ctx.beginPath(); ctx.moveTo(bx - bs * .45, by - bs * .28); ctx.lineTo(bx + bs * .45, by - bs * .28); ctx.moveTo(bx - bs * .45, by + bs * .22); ctx.lineTo(bx + bs * .2, by + bs * .22); ctx.stroke();
+    }
     if (n === lt) { ctx.strokeStyle = '#2F9E68'; ctx.lineWidth = 2.6 / k; circle(x, y, r + 6 / k); ctx.stroke(); }
     else if (n === selN && !linkCtx) { ctx.strokeStyle = INK; ctx.lineWidth = 2 / k; circle(x, y, r + 5.5 / k); ctx.stroke(); }
     else if (n === hoverNode && !linkCtx) { ctx.strokeStyle = 'rgba(27,32,48,.28)'; ctx.lineWidth = 1.6 / k; circle(x, y, r + 5 / k); ctx.stroke(); }
@@ -1970,6 +2003,7 @@ $('#filterPill').addEventListener('click', e => { if (e.target.closest('[data-fp
 let confirmResolve = null;
 function showModal() { modalEl.hidden = false; modal.open = true; dirty(); }
 function closeModal() {
+  if (noteT) { clearTimeout(noteT); noteT = 0; scheduleSave(); dirty(); scheduleDash(); }
   modalEl.hidden = true; modal = { open: false };
   if (confirmResolve) { const r = confirmResolve; confirmResolve = null; r(false); }
   dirty();
@@ -2004,8 +2038,7 @@ function viewPerson(n) {
   const tasks = [...adj.get(n.id)].map(id => byId.get(id)).sort((a, b) => (isOverdue(b) - isOverdue(a)) || ((a.status === 'done') - (b.status === 'done')) || (daysLeft(a.due) ?? 9e9) - (daysLeft(b.due) ?? 9e9));
   const over = tasks.filter(isOverdue).length, done = tasks.filter(t => t.status === 'done').length;
   const rows = row('phone', 'Điện thoại', n.phone ? `<a href="tel:${esc(n.phone.replace(/[^\d+]/g, ''))}">${esc(n.phone)}</a>` : '') +
-    row('mail', 'Email', n.email ? `<a href="mailto:${esc(n.email)}">${esc(n.email)}</a>` : '') +
-    row('note', 'Ghi chú', esc(n.note));
+    row('mail', 'Email', n.email ? `<a href="mailto:${esc(n.email)}">${esc(n.email)}</a>` : '');
   return `
   <div class="sheet-head">
     <div class="kind"><span class="bdot person"></span>Nhân sự, khu 1</div>
@@ -2019,7 +2052,9 @@ function viewPerson(n) {
       ${done ? tag(`${done} hoàn thành`, 'ok') : ''}
       ${over ? tag(`${over} quá hạn`, 'danger') : ''}
     </div>
-    ${rows ? `<div class="rows">${rows}</div>` : `<div class="muted-note">Chưa có số điện thoại, email hay ghi chú. Bấm Chỉnh sửa để bổ sung.</div>`}
+    ${rows ? `<div class="rows">${rows}</div>` : `<div class="muted-note">Chưa có số điện thoại hay email. Bấm Chỉnh sửa để bổ sung.</div>`}
+    <div class="sec"><h5>Ghi chú</h5><span class="nstate" id="nState">Tự lưu khi gõ</span></div>
+    <textarea class="note-area" id="noteArea" data-note="${n.id}" maxlength="4000" placeholder="${n.type === 'person' ? 'Ghi chú về người này: lịch làm việc, điểm mạnh, việc cần nhắc' : 'Ghi chú cho công việc: yêu cầu, vướng mắc, bước tiếp theo'}">${esc(n.note)}</textarea>
     <div class="sec"><h5>Công việc đang giao <span>${tasks.length}</span></h5><button class="lnk" data-act="links">${ic('link')}Giao việc</button></div>
     ${tasks.length ? tasks.map(t => `
       <div class="litem" data-act="goto" data-id="${t.id}">
@@ -2042,8 +2077,7 @@ function viewTask(n) {
   const p = n.status === 'done' ? 100 : n.progress;
   const rows = row('folder', 'Dự án', n.project ? esc(n.project) : '') +
     row('calendar', 'Bắt đầu', n.start ? fmtDate(n.start) : '') +
-    row('calendar', 'Hạn chót', n.due ? `${fmtDate(n.due)}${n.status !== 'done' ? `, <span class="${isOverdue(n) ? 'od' : ''}">${dueText(n)}</span>` : ''}` : '') +
-    row('note', 'Ghi chú', esc(n.note));
+    row('calendar', 'Hạn chót', n.due ? `${fmtDate(n.due)}${n.status !== 'done' ? `, <span class="${isOverdue(n) ? 'od' : ''}">${dueText(n)}</span>` : ''}` : '');
   return `
   <div class="sheet-head">
     <div class="kind"><span class="bdot task"></span>Công việc, khu 2</div>
@@ -2058,6 +2092,8 @@ function viewTask(n) {
     </div>
     <div class="prog"><div class="prog-top"><span>Tiến độ</span><b>${p}%</b></div><div class="bar"><i style="width:${p}%"></i></div></div>
     ${rows ? `<div class="rows">${rows}</div>` : ''}
+    <div class="sec"><h5>Ghi chú</h5><span class="nstate" id="nState">Tự lưu khi gõ</span></div>
+    <textarea class="note-area" id="noteArea" data-note="${n.id}" maxlength="4000" placeholder="${n.type === 'person' ? 'Ghi chú về người này: lịch làm việc, điểm mạnh, việc cần nhắc' : 'Ghi chú cho công việc: yêu cầu, vướng mắc, bước tiếp theo'}">${esc(n.note)}</textarea>
     <div class="sec"><h5>Người thực hiện <span>${people.length}</span></h5><button class="lnk" data-act="links">${ic('link')}Gán người</button></div>
     ${people.length ? people.map(q => `
       <div class="litem" data-act="goto" data-id="${q.id}">
@@ -2268,6 +2304,18 @@ sheet.addEventListener('click', async e => {
   }
   if (act === 'cok') { const r = confirmResolve; confirmResolve = null; closeModal(); r && r(true); return; }
   if (act === 'cno') { closeModal(); return; }
+});
+// notes typed in the popup are kept as you type (one undo step per editing session)
+let noteSnap = null, noteT = 0;
+sheet.addEventListener('focusin', e => { if (e.target.id === 'noteArea') noteSnap = null; });
+sheet.addEventListener('input', e => {
+  const ta = e.target; if (ta.id !== 'noteArea') return;
+  const n = byId.get(ta.dataset.note); if (!n) return;
+  if (noteSnap !== n.id) { snapshot(); noteSnap = n.id; }
+  n.note = ta.value; n.updatedAt = new Date().toISOString();
+  const st = $('#nState', sheet); if (st) st.textContent = 'Đang lưu…';
+  clearTimeout(noteT);
+  noteT = setTimeout(() => { scheduleSave(); dirty(); scheduleDash(); const s2 = $('#nState', sheet); if (s2) s2.textContent = 'Đã lưu'; }, 450);
 });
 function confirmDialog({ title, text, ok, danger }) {
   return new Promise(res => {
@@ -2679,11 +2727,14 @@ function ganttCard(T) {
   const gm = new Map();
   for (const r of rows) { const g = groupName(r.t); if (!gm.has(g)) gm.set(g, []); gm.get(g).push(r); }
   const groups = [...gm.entries()].map(([g, rs]) => {
-    rs.sort((a, b) => a.sp.s.localeCompare(b.sp.s) || a.sp.e.localeCompare(b.sp.e) || a.t.name.localeCompare(b.t.name, 'vi'));
+    const ord = r => r.t.order == null ? Infinity : r.t.order;   // manual order (drag up/down) first, then by start
+    rs.sort((a, b) => (ord(a) - ord(b)) || a.sp.s.localeCompare(b.sp.s) || a.sp.e.localeCompare(b.sp.e) || a.t.name.localeCompare(b.t.name, 'vi'));
     return { g, rs, s: rs.reduce((m, r) => r.sp.s < m ? r.sp.s : m, rs[0].sp.s), e: rs.reduce((m, r) => r.sp.e > m ? r.sp.e : m, rs[0].sp.e) };
   }).sort((a, b) => a.s.localeCompare(b.s) || a.g.localeCompare(b.g, 'vi'));
 
   // header: months + days
+  gtMeta = { dw, r0, idx, groupOf: new Map() };
+  for (const G of groups) { const o = { g: G.g, ids: G.rs.map(r => r.t.id) }; for (const id of o.ids) gtMeta.groupOf.set(id, o); }
   let months = '', daysH = '', bg = '';
   for (let i = 0; i < days; i++) {
     const d = new Date(D0); d.setDate(d.getDate() + i);
@@ -2706,17 +2757,19 @@ function ganttCard(T) {
       const c = STATUS[t.status].color, p = progOf(t), a = idx(sp.s), b = idx(sp.e);
       const late = isOverdue(t), ppl = peopleOf(t);
       const lines = [`${fmtDate(sp.s)} đến ${fmtDate(sp.e)}, ${b - a + 1} ngày${sp.est ? ' (ngày bắt đầu ước tính)' : ''}`, `Tiến độ ${p}%${t.due && t.status !== 'done' ? `, ${dueText(t)}` : ''}`, ppl.length ? `Người làm: ${ppl.map(x => x.name).join(', ')}` : 'Chưa giao người'];
+      if (t.note) lines.push(`Ghi chú: ${short(t.note.replace(/\s+/g, ' '), 60)}`);
+      lines.push('Kéo để dời, kéo 2 đầu để đổi số ngày, nhấn đúp để sửa');
       const tp = tip({ value: t.name, label: STATUS[t.status].label, color: c, list: lines });
-      left += `<div class="gt-row rowbtn" role="button" tabindex="0" data-open="${t.id}" data-tip="${tp}"><span class="gname">${esc(t.name)}</span><span class="gpc">${p}%</span></div>`;
+      left += `<div class="gt-row gt-task" tabindex="0" data-gt="${t.id}" data-tip="${tp}" aria-label="${esc(t.name)}, nhấn đúp để sửa"><span class="ggrip" title="Kéo để đổi vị trí">${ic('grip')}</span><span class="gname">${esc(t.name)}</span>${t.note ? `<span class="gnote" title="Có ghi chú">${ic('note')}</span>` : ''}<span class="gpc">${p}%</span></div>`;
       right += `<div class="gt-trow">`
-        + `<div class="gb${sp.est ? ' est' : ''}" style="--c:${c};left:${a * dw + 1}px;width:${Math.max(dw - 2, (b - a + 1) * dw - 2)}px" data-open="${t.id}" data-tip="${tp}"><i class="tr"></i><i class="fl" style="width:${p}%"></i></div>`
-        + (late ? `<i class="gtail" style="left:${(b + 1) * dw}px;width:${Math.max(0, (ti - b) * dw)}px" data-open="${t.id}" data-tip="${tp}"></i>` : '')
+        + `<div class="gb${sp.est ? ' est' : ''}" style="--c:${c};left:${a * dw + 1}px;width:${Math.max(dw - 2, (b - a + 1) * dw - 2)}px" data-gt="${t.id}" data-tip="${tp}"><i class="tr"></i><i class="fl" style="width:${p}%"></i><i class="gh l" title="Kéo để đổi ngày bắt đầu"></i><i class="gh r" title="Kéo để đổi hạn chót"></i></div>`
+        + (late ? `<i class="gtail" style="left:${(b + 1) * dw}px;width:${Math.max(0, (ti - b) * dw)}px" data-gt="${t.id}" data-tip="${tp}"></i>` : '')
         + (narrow ? '' : `<span class="gppl" style="left:${(late ? ti + 1 : b + 1) * dw + 6}px">${esc(ppl.map(x => x.name.split(' ').pop()).join(', '))}</span>`)
         + `</div>`;
     }
   }
-  const lg = `<div class="lgd gt-lgd">${STATUS_ORDER.map(s => `<span><i style="background:${STATUS[s].color}"></i>${STATUS[s].label}</span>`).join('')}<span><i class="lg-today"></i>Hôm nay</span><span><i class="lg-late"></i>Trễ hạn đến hôm nay</span><span><i class="lg-est"></i>Chưa đặt ngày bắt đầu</span></div>`;
-  return `<div class="card gt-card" id="dc-gantt"><div class="ch"><h3>Biểu đồ Gantt</h3><span class="cs">${rows.length} việc theo dự án, từ ngày bắt đầu đến hạn chót; phần đậm là tiến độ${noDue ? `, ${noDue} việc chưa có hạn chót không hiển thị` : ''}</span></div>${lg}
+  const lg = `<div class="lgd gt-lgd"><span class="gcount">${rows.length} việc, phần đậm là tiến độ${noDue ? `, ${noDue} việc chưa có hạn chót không hiển thị` : ''}</span>${STATUS_ORDER.map(s => `<span><i style="background:${STATUS[s].color}"></i>${STATUS[s].label}</span>`).join('')}<span><i class="lg-today"></i>Hôm nay</span><span><i class="lg-late"></i>Trễ hạn đến hôm nay</span><span><i class="lg-est"></i>Chưa đặt ngày bắt đầu</span></div>`;
+  return `<div class="card gt-card" id="dc-gantt"><div class="ch"><h3>Biểu đồ Gantt</h3><span class="cs">kéo thanh để dời ngày, kéo 2 đầu để đổi số ngày, kéo lên xuống để đổi vị trí, nhấn đúp để sửa</span></div>${lg}
     <div class="gantt" style="--lw:${labW}px">
       <div class="gt-left"><div class="gt-head"><span>Công việc</span><span>Tiến độ</span></div>${left}</div>
       <div class="gt-scroll" id="gtScroll"><div class="gt-inner" style="width:${W}px;--dw:${dw}px">
@@ -2731,6 +2784,98 @@ function restoreGanttScroll() {
   const tl = $('.gtoday', sc); if (tl && sc.scrollWidth > sc.clientWidth) sc.scrollLeft = Math.max(0, parseFloat(tl.style.left) - sc.clientWidth * 0.3);
 }
 dashEl.addEventListener('scroll', e => { if (e.target.id === 'gtScroll') { gtScroll = e.target.scrollLeft; hideTip(); } }, true);
+
+
+/* ---------- Gantt editing: drag to move, drag ends to resize, drag up/down to reorder, double click to edit ---------- */
+let gtMeta = null, gdrag = null;
+const gtTask = id => { const t = byId.get(id); return t && t.type === 'task' ? t : null; };
+function gtDragTip(text, sub, x, y) {
+  tipCur = -2; dtip.replaceChildren();
+  const v = document.createElement('div'); v.className = 'tv'; v.textContent = text;
+  const l = document.createElement('div'); l.className = 'tl'; l.textContent = sub;
+  dtip.append(v, l); dtip.hidden = false;
+  dtip.style.transform = `translate(${Math.min(innerWidth - dtip.offsetWidth - 8, x + 14)}px,${Math.max(8, y - dtip.offsetHeight - 14)}px)`;
+}
+dashEl.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || !gtMeta) return;
+  const bar = e.target.closest('.gb[data-gt]'), row = e.target.closest('.gt-row[data-gt]');
+  if (!bar && !row) return;
+  if (row && e.pointerType !== 'mouse' && !e.target.closest('.ggrip')) return;   // touch: reorder only from the grip
+  const id = (bar || row).dataset.gt, t = gtTask(id); if (!t) return;
+  const sp = taskSpan(t); if (!sp) return;
+  const h = e.target.closest('.gh');
+  gdrag = {
+    id, t, sp, el: bar || $(`.gb[data-gt="${id}"]`, dashEl), sx: e.clientX, sy: e.clientY, pid: e.pointerId,
+    mode: h ? (h.classList.contains('l') ? 'resizeL' : 'resizeR') : bar ? 'pendBar' : 'pendRow',
+    a: gtMeta.idx(sp.s), b: gtMeta.idx(sp.e), dd: 0
+  };
+  try { (bar || row).setPointerCapture(e.pointerId); } catch (_) { }
+  if (h) e.preventDefault();
+});
+dashEl.addEventListener('pointermove', e => {
+  const g = gdrag; if (!g || e.pointerId !== g.pid) return;
+  const dx = e.clientX - g.sx, dy = e.clientY - g.sy;
+  if (g.mode === 'pendBar') {
+    if (Math.abs(dx) > 4 && Math.abs(dx) >= Math.abs(dy)) g.mode = 'move';
+    else if (Math.abs(dy) > 6) g.mode = 'reorder';
+    else return;
+  } else if (g.mode === 'pendRow') { if (Math.abs(dy) > 4) g.mode = 'reorder'; else return; }
+  e.preventDefault(); hideTip();
+  dashEl.classList.add('gt-busy');
+  const dw = gtMeta.dw;
+  if (g.mode === 'move' || g.mode === 'resizeL' || g.mode === 'resizeR') {
+    let dd = Math.round(dx / dw), a = g.a, b = g.b;
+    if (g.mode === 'move') { a += dd; b += dd; }
+    else if (g.mode === 'resizeL') { dd = Math.min(dd, g.b - g.a); a += dd; }
+    else { dd = Math.max(dd, g.a - g.b); b += dd; }
+    g.dd = dd; g.na = a; g.nb = b;
+    if (g.el) { g.el.classList.add('dragging'); g.el.style.left = `${a * dw + 1}px`; g.el.style.width = `${Math.max(dw - 2, (b - a + 1) * dw - 2)}px`; }
+    const s = shiftD(gtMeta.r0, a), en = shiftD(gtMeta.r0, b);
+    gtDragTip(`${fmtDate(s).slice(0, 5)} đến ${fmtDate(en).slice(0, 5)}`, `${b - a + 1} ngày${g.mode === 'move' ? (dd ? `, dời ${dd > 0 ? '+' : ''}${dd} ngày` : '') : ''}`, e.clientX, e.clientY);
+  } else if (g.mode === 'reorder') {
+    const grp = gtMeta.groupOf.get(g.id);
+    const rowsEl = grp.ids.map(id => $(`.gt-row[data-gt="${id}"]`, dashEl)).filter(Boolean);
+    if (!rowsEl.length) return;
+    let pos = rowsEl.length;
+    for (let i = 0; i < rowsEl.length; i++) { const r = rowsEl[i].getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { pos = i; break; } }
+    g.pos = pos;
+    const gantt = $('.gantt', dashEl), gr = gantt.getBoundingClientRect();
+    const ref = pos < rowsEl.length ? rowsEl[pos].getBoundingClientRect().top : rowsEl[rowsEl.length - 1].getBoundingClientRect().bottom;
+    let ind = $('.gdrop', gantt); if (!ind) { ind = document.createElement('i'); ind.className = 'gdrop'; gantt.append(ind); }
+    ind.style.top = `${ref - gr.top - 1}px`;
+    $$(`[data-gt="${g.id}"]`, dashEl).forEach(x => x.closest('.gt-row,.gt-trow').classList.add('gmoving'));
+    gtDragTip(g.t.name, 'Thả để đổi vị trí trong dự án', e.clientX, e.clientY);
+  }
+});
+function gtEnd(e, cancel) {
+  const g = gdrag; if (!g || e.pointerId !== g.pid) return;
+  gdrag = null; dashEl.classList.remove('gt-busy'); hideTip();
+  const ind = $('.gdrop', dashEl); if (ind) ind.remove();
+  if (cancel) { renderDash(); return; }
+  if ((g.mode === 'move' || g.mode === 'resizeL' || g.mode === 'resizeR')) {
+    if (!g.dd) { if (g.el) { g.el.classList.remove('dragging'); } return; }
+    snapshot();
+    const t = g.t; t.start = shiftD(gtMeta.r0, g.na); t.due = shiftD(gtMeta.r0, g.nb); t.updatedAt = new Date().toISOString();
+    rebuild(); scheduleSave();
+    const what = g.mode === 'move' ? 'Đã dời' : 'Đã đổi thời gian';
+    toast(`${what} “${short(t.name, 24)}”: ${fmtDate(t.start).slice(0, 5)} đến ${fmtDate(t.due).slice(0, 5)}`, { action: 'Hoàn tác', onAction: undo });
+  } else if (g.mode === 'reorder' && g.pos != null) {
+    const grp = gtMeta.groupOf.get(g.id), ids = grp.ids.slice(), from = ids.indexOf(g.id);
+    let to = g.pos; if (to > from) to--;
+    if (to === from) { renderDash(); return; }
+    ids.splice(from, 1); ids.splice(to, 0, g.id);
+    snapshot();
+    ids.forEach((id, i) => { const t = gtTask(id); if (t) t.order = (i + 1) * 10; });
+    rebuild(); scheduleSave();
+    toast(`Đã chuyển “${short(g.t.name, 26)}” ${to < from ? 'lên trên' : 'xuống dưới'}`, { action: 'Hoàn tác', onAction: undo });
+  } else if (g.mode === 'reorder') renderDash();
+}
+dashEl.addEventListener('pointerup', e => gtEnd(e, false));
+dashEl.addEventListener('pointercancel', e => gtEnd(e, true));
+dashEl.addEventListener('dblclick', e => {
+  const el = e.target.closest('.gb[data-gt], .gt-row[data-gt], .gtail[data-gt]'); if (!el) return;
+  const t = gtTask(el.dataset.gt); if (t) { hideTip(); openForm(t); }
+});
 
 /* tooltip: values lead, labels follow; names are inserted as text, never as HTML */
 function showTip(i, x, y) {
@@ -2757,7 +2902,7 @@ function showTip(i, x, y) {
   dtip.style.transform = `translate(${Math.max(8, tx)}px,${Math.max(8, ty)}px)`;
 }
 function hideTip() { tipCur = -1; dtip.hidden = true; }
-dashEl.addEventListener('pointermove', e => { const el = e.target.closest('[data-tip]'); if (el) showTip(+el.dataset.tip, e.clientX, e.clientY); else hideTip(); });
+dashEl.addEventListener('pointermove', e => { if (gdrag && gdrag.mode !== 'pendBar' && gdrag.mode !== 'pendRow') return; const el = e.target.closest('[data-tip]'); if (el) showTip(+el.dataset.tip, e.clientX, e.clientY); else hideTip(); });
 dashEl.addEventListener('pointerleave', hideTip);
 dashEl.addEventListener('scroll', hideTip, { passive: true });
 dashEl.addEventListener('change', e => {
@@ -2776,6 +2921,7 @@ dashEl.addEventListener('click', e => {
   const nw = t.closest('[data-new]'); if (nw) openForm(null, nw.dataset.new);
 });
 dashEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('.gt-task')) { const t = byId.get(e.target.dataset.gt); if (t) openForm(t); return; }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.rowbtn,.gt-grp')) { e.preventDefault(); e.target.click(); }
 });
 

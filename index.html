@@ -434,6 +434,52 @@ button.kpi:hover{border-color:#D3D7DF;box-shadow:var(--sh-2)}
 .idle button:hover{background:var(--surface-2)}
 .idle .av{width:22px;height:22px;font-size:9px;box-shadow:none}
 .dempty{display:grid;place-items:center;min-height:60vh}
+/* gantt */
+.gt-card{margin-bottom:12px}
+.gt-lgd{margin-bottom:12px}
+.gt-lgd .lg-today{width:2px;height:12px;border-radius:1px;background:var(--task)}
+.gt-lgd .lg-late{width:16px;height:4px;border-radius:2px;background:repeating-linear-gradient(45deg,var(--danger) 0 3px,transparent 3px 5px)}
+.gt-lgd .lg-est{width:16px;height:10px;border-radius:3px;border:1.5px dashed var(--muted);background:transparent}
+.gantt{display:grid;grid-template-columns:var(--lw) minmax(0,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.gt-left{border-right:1px solid var(--line);min-width:0;background:#fff;position:relative;z-index:1}
+.gt-head{height:46px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.gt-left .gt-head{display:flex;align-items:flex-end;justify-content:space-between;padding:0 12px 8px;font:600 12px var(--font);color:var(--muted)}
+.gt-row{height:27px;display:flex;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid var(--line-2);border-radius:0;min-width:0}
+.gt-row.gt-grp{height:30px;background:var(--surface-2);cursor:pointer;padding-left:6px;gap:7px}
+.gt-row.gt-grp:hover{background:var(--line-2)}
+.gt-row.gt-grp b{font:700 13px var(--font);letter-spacing:-.01em;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.gchev{display:grid;place-items:center;width:20px;height:20px;color:var(--muted);transition:transform .2s}
+.gchev svg.i{width:15px;height:15px}
+.gchev.shut{transform:rotate(-90deg)}
+.gcnt{font:600 11.5px var(--font);color:var(--muted);white-space:nowrap}
+.gname{flex:1;min-width:0;font:600 12.5px var(--font);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:27px}
+.gpc{font:600 11.5px var(--font);color:var(--muted);font-variant-numeric:tabular-nums}
+.gt-scroll{overflow-x:auto;overflow-y:hidden;min-width:0}
+.gt-inner{position:relative}
+.gt-inner .gt-head{position:relative}
+.gmonths{position:relative;height:20px}
+.gmonths span{position:absolute;top:5px;padding-left:6px;font:700 11.5px var(--font);color:var(--ink-2);white-space:nowrap;border-left:1px solid var(--line)}
+.gdays{display:flex;height:26px;align-items:center}
+.gdays span{flex:none;text-align:center;font:500 11px var(--font);color:var(--muted);font-variant-numeric:tabular-nums}
+.gdays span.wk{color:var(--faint)}
+.gdays span.td{color:#fff;font-weight:700;position:relative}
+.gdays span.td::before{content:"";position:absolute;left:50%;top:50%;width:22px;height:20px;transform:translate(-50%,-50%);border-radius:6px;background:var(--task);z-index:-1}
+.gdays{position:relative;z-index:0}
+.gt-body{position:relative;background-image:linear-gradient(to right,var(--line-2) 1px,transparent 1px);background-size:var(--dw) 100%}
+.gt-bg{position:absolute;inset:0;pointer-events:none}
+.gwk{position:absolute;top:0;bottom:0;background:rgba(27,32,48,.035)}
+.gtoday{position:absolute;top:0;bottom:0;width:2px;background:var(--task);opacity:.85;z-index:2}
+.gt-trow{position:relative;height:27px;border-bottom:1px solid var(--line-2)}
+.gt-trow.gt-grp{height:30px;background:rgba(250,251,252,.7)}
+.gspan{position:absolute;top:12px;height:6px;border-radius:3px;background:var(--c);opacity:.55}
+.gb{position:absolute;top:7px;height:13px;border-radius:4px;cursor:pointer;z-index:1}
+.gb .tr{position:absolute;inset:0;border-radius:inherit;background:var(--c);opacity:.3}
+.gb .fl{position:absolute;left:0;top:0;bottom:0;border-radius:inherit;background:var(--c)}
+.gb.est{outline:1.5px dashed var(--c);outline-offset:-1.5px}
+.gb.est .tr{opacity:.14}
+.gb:hover{filter:brightness(1.08);box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--c)}
+.gtail{position:absolute;top:11.5px;height:4px;border-radius:2px;background:repeating-linear-gradient(45deg,var(--danger) 0 3px,transparent 3px 5px);cursor:pointer;z-index:1}
+.gppl{position:absolute;top:6.5px;font:500 11px/14px var(--font);color:var(--muted);white-space:nowrap;pointer-events:none}
 /* tooltip */
 .dtip{position:fixed;left:0;top:0;z-index:70;pointer-events:none;min-width:150px;max-width:290px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-3);padding:10px 12px 9px}
 .dtip .tv{font:700 15px/1.25 var(--font);color:var(--ink);letter-spacing:-.01em}
@@ -514,6 +560,8 @@ button.kpi:hover{border-color:#D3D7DF;box-shadow:var(--sh-2)}
   .dfilters{width:100%}
   .dsel{flex:1}
   .card{padding:16px 12px 12px}
+  .gpc,.gt-left .gt-head span:last-child,.gcnt{display:none}
+  .gname{padding-left:8px}
 }
 @media (max-width:520px){
   .lbl-s{display:none}
@@ -587,7 +635,7 @@ button.kpi:hover{border-color:#D3D7DF;box-shadow:var(--sh-2)}
           <div class="msep"></div>
           <button data-m="sample"><svg class="i" data-ic="refresh"></svg>Nạp dữ liệu mẫu</button>
           <button data-m="clear" class="danger"><svg class="i" data-ic="trash"></svg>Xóa toàn bộ dữ liệu</button>
-          <div class="mfoot">nodetodo 1.3, by Nguyễn Mạnh Hùng</div>
+          <div class="mfoot">nodetodo 1.4, by Nguyễn Mạnh Hùng</div>
         </div>
       </div>
     </div>
@@ -707,6 +755,7 @@ const ICON = {
   move: '<path d="M12 2v20M2 12h20"/><path d="m15 5-3-3-3 3M15 19l-3 3-3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/>',
   hand: '<path d="M9 11V5a1.5 1.5 0 0 1 3 0v5"/><path d="M12 10V4a1.5 1.5 0 0 1 3 0v6"/><path d="M15 10V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-2.7l-2.6-4.1a1.5 1.5 0 0 1 2.4-1.8L6 14V8a1.5 1.5 0 0 1 3 0v3"/>',
   check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  chev: '<path d="m6 9 6 6 6-6"/>',
   map: '<circle cx="6" cy="7" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="17" cy="18" r="2.6"/><path d="M8.6 6.8 15.4 6.2M8.1 8.9l7 7.3"/>',
   chart: '<path d="M4 20h16"/><path d="M7.5 16v-5M12 16V6M16.5 16v-8"/>',
   grid: '<circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/>'
@@ -731,7 +780,7 @@ const PRIORITY = {
   high: { label: 'Cao', color: '#F76B15' },
   urgent: { label: 'Khẩn cấp', color: '#D9363E' }
 };
-const FIELDS = { person: ['name', 'role', 'dept', 'phone', 'email', 'note'], task: ['name', 'project', 'status', 'progress', 'priority', 'due', 'note'] };
+const FIELDS = { person: ['name', 'role', 'dept', 'phone', 'email', 'note'], task: ['name', 'project', 'status', 'progress', 'priority', 'start', 'due', 'note'] };
 const KMIN = 0.15, KMAX = 3.2, MARGIN = 26;
 // physics
 const REP = -1100, REP_MAX2 = 460 * 460;
@@ -880,6 +929,7 @@ function normalize(raw) {
       n.progress = clamp(Math.round(Number(r.progress) || 0), 0, 100);
       n.priority = PRIORITY[r.priority] ? r.priority : 'med';
       n.due = /^\d{4}-\d{2}-\d{2}$/.test(r.due || '') ? r.due : '';
+      n.start = /^\d{4}-\d{2}-\d{2}$/.test(r.start || '') ? r.start : '';
     }
     n.x = Number.isFinite(+r.x) && r.x !== null && r.x !== '' ? +r.x : null;
     n.y = Number.isFinite(+r.y) && r.y !== null && r.y !== '' ? +r.y : null;
@@ -986,9 +1036,10 @@ function sampleData() {
     const id = 'p' + (i + 1); byGiven[p[0].split(' ').pop()] = id;
     nodes.push({ id, type: 'person', name: p[0], role: p[1], dept: p[2], phone: p[3], email: p[4], note: '', x: -300 - Math.random() * 160, y: (i - P.length / 2) * 64, createdAt: now, updatedAt: now });
   });
+  const DUR = [9, 12, 6, 8, 5, 7, 9, 10, 7, 12, 10, 9, 12, 4, 6, 10, 8, 6, 14, 6, 7, 8];
   T.forEach((t, i) => {
     const id = 't' + (i + 1);
-    nodes.push({ id, type: 'task', name: t[0], project: t[1], status: t[2], progress: t[3], priority: t[4], due: addDays(t[5]), note: t[7], x: 300 + Math.random() * 160, y: (i - T.length / 2) * 42, createdAt: now, updatedAt: now });
+    nodes.push({ id, type: 'task', name: t[0], project: t[1], status: t[2], progress: t[3], priority: t[4], start: addDays(t[5] - DUR[i]), due: addDays(t[5]), note: t[7], x: 300 + Math.random() * 160, y: (i - T.length / 2) * 42, createdAt: now, updatedAt: now });
     for (const g of t[6]) links.push({ id: uid(), p: byGiven[g], t: id });
   });
   return { nodes, links, groupColors: {} };
@@ -1011,6 +1062,7 @@ function resize() {
   computeZone();
   if (oW && cw >= 760 && (cw !== oW || ch !== oH) && data.nodes.length) fitView(false);
   draw(performance.now());
+  if (oW && cw !== oW && typeof scheduleDash === 'function') scheduleDash();
 }
 new ResizeObserver(resize).observe(stage);
 
@@ -1989,6 +2041,7 @@ function viewTask(n) {
   const pr = PRIORITY[n.priority], st = STATUS[n.status];
   const p = n.status === 'done' ? 100 : n.progress;
   const rows = row('folder', 'Dự án', n.project ? esc(n.project) : '') +
+    row('calendar', 'Bắt đầu', n.start ? fmtDate(n.start) : '') +
     row('calendar', 'Hạn chót', n.due ? `${fmtDate(n.due)}${n.status !== 'done' ? `, <span class="${isOverdue(n) ? 'od' : ''}">${dueText(n)}</span>` : ''}` : '') +
     row('note', 'Ghi chú', esc(n.note));
   return `
@@ -2054,8 +2107,9 @@ function formHtml(n, type) {
       <div class="field full"><label for="fProj">${ic('folder', ' style="width:14px;height:14px"')}Dự án hoặc nhóm việc</label><div class="gwrap"><span class="gsw" style="--c:${peekColor(v.project)}"></span><input id="fProj" name="project" maxlength="80" list="dlProj" value="${esc(v.project)}" placeholder="VD: Website mới" autocomplete="off"></div>${datalist('dlProj', 'task')}</div>
       <div class="field"><label for="fStatus">Trạng thái</label><select id="fStatus" name="status">${Object.entries(STATUS).map(([k, s]) => `<option value="${k}"${k === st ? ' selected' : ''}>${s.label}</option>`).join('')}</select></div>
       <div class="field"><label for="fPri">${ic('flag', ' style="width:14px;height:14px"')}Ưu tiên</label><select id="fPri" name="priority">${Object.entries(PRIORITY).map(([k, s]) => `<option value="${k}"${k === pr ? ' selected' : ''}>${s.label}</option>`).join('')}</select></div>
+      <div class="field"><label for="fStart">${ic('calendar', ' style="width:14px;height:14px"')}Ngày bắt đầu</label><input id="fStart" name="start" type="date" value="${esc(v.start)}"></div>
       <div class="field"><label for="fDue">${ic('calendar', ' style="width:14px;height:14px"')}Hạn chót</label><input id="fDue" name="due" type="date" value="${esc(v.due)}"></div>
-      <div class="field"><label for="fProg">Tiến độ</label><div class="range-row" style="height:42px"><input id="fProg" name="progress" type="range" min="0" max="100" step="5" value="${pg}" style="--v:${pg}%"><output id="fProgO">${pg}%</output></div></div>
+      <div class="field full"><label for="fProg">Tiến độ</label><div class="range-row" style="height:42px"><input id="fProg" name="progress" type="range" min="0" max="100" step="5" value="${pg}" style="--v:${pg}%"><output id="fProgO">${pg}%</output></div></div>
       <div class="field full"><label for="fNote">${ic('note', ' style="width:14px;height:14px"')}Ghi chú</label><textarea id="fNote" name="note" maxlength="4000" placeholder="Mô tả, yêu cầu, lưu ý">${esc(v.note)}</textarea></div>`;
   }
   return `
@@ -2150,6 +2204,8 @@ function submitForm(form, n, type) {
     n.progress = clamp(+fd.get('progress') || 0, 0, 100);
     if (n.status === 'done') n.progress = 100;
     n.due = String(fd.get('due') || '');
+    n.start = String(fd.get('start') || '');
+    if (n.start && n.due && n.start > n.due) { const x = n.start; n.start = n.due; n.due = x; toast('Ngày bắt đầu sau hạn chót nên đã đảo lại cho đúng thứ tự', { plain: true }); }
   }
   const boxes = $$('input[name=lnk]', sheet);
   if (boxes.length) {
@@ -2585,10 +2641,97 @@ function renderDash() {
     </tbody></table>
     ${idle.length ? `<div class="subh">Nhân sự chưa có việc đang mở</div><div class="idle">${idle.map(r => `<button data-open="${r.p.id}">${avatar(r.p)}${esc(r.p.name)}</button>`).join('')}</div>` : ''}</div>`;
 
+  h += ganttCard(T);
   h += `<div class="dgrid"><div class="dcol">${cardLoad}${cardProj}${cardAttn}</div><div class="dcol">${cardStatus}${cardDl}${cardDept}</div></div></div>`;
   dashEl.innerHTML = h;
   dashEl.scrollTop = scrollY;
+  restoreGanttScroll();
 }
+
+/* ---------- Gantt (dashboard) ---------- */
+const gtCollapsed = new Set();
+let gtScroll = null;
+const parseD = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const shiftD = (s, n) => { const d = parseD(s); d.setDate(d.getDate() + n); return ymd(d); };
+// start and end of a task bar; a task without a start date gets an estimated one (drawn dashed)
+function taskSpan(t) {
+  if (!t.due) return null;
+  if (t.start && t.start <= t.due) return { s: t.start, e: t.due, est: false };
+  const c = ymd(new Date(t.createdAt || Date.now()));
+  return { s: c <= t.due ? c : shiftD(t.due, -4), e: t.due, est: true };
+}
+function ganttCard(T) {
+  const rows = T.map(t => ({ t, sp: taskSpan(t) })).filter(r => r.sp);
+  const noDue = T.length - rows.length;
+  if (!rows.length) return `<div class="card gt-card" id="dc-gantt"><div class="ch"><h3>Biểu đồ Gantt</h3></div><div class="empty-line">Chưa có công việc nào đặt hạn chót. Đặt ngày bắt đầu và hạn chót cho công việc để hiện trên biểu đồ.</div></div>`;
+  const todayS = ymd(new Date());
+  let minS = todayS, maxE = todayS;
+  for (const r of rows) { if (r.sp.s < minS) minS = r.sp.s; if (r.sp.e > maxE) maxE = r.sp.e; }
+  const r0 = shiftD(minS, -2), r1 = shiftD(maxE, 3);
+  const D0 = parseD(r0), days = Math.round((parseD(r1) - D0) / 864e5) + 1;
+  const idx = s => Math.round((parseD(s) - D0) / 864e5);
+  const narrow = cw < 760, labW = narrow ? 150 : 270;
+  const padX = narrow ? 24 : 56;
+  const inner = Math.min(1500, (dashEl.clientWidth || cw) - padX) - 38 - labW - 2;
+  const dw = clamp(inner / days, narrow ? 14 : 16, 44);
+  const W = days * dw, ti = idx(todayS);
+  // groups = projects, ordered by their first start
+  const gm = new Map();
+  for (const r of rows) { const g = groupName(r.t); if (!gm.has(g)) gm.set(g, []); gm.get(g).push(r); }
+  const groups = [...gm.entries()].map(([g, rs]) => {
+    rs.sort((a, b) => a.sp.s.localeCompare(b.sp.s) || a.sp.e.localeCompare(b.sp.e) || a.t.name.localeCompare(b.t.name, 'vi'));
+    return { g, rs, s: rs.reduce((m, r) => r.sp.s < m ? r.sp.s : m, rs[0].sp.s), e: rs.reduce((m, r) => r.sp.e > m ? r.sp.e : m, rs[0].sp.e) };
+  }).sort((a, b) => a.s.localeCompare(b.s) || a.g.localeCompare(b.g, 'vi'));
+
+  // header: months + days
+  let months = '', daysH = '', bg = '';
+  for (let i = 0; i < days; i++) {
+    const d = new Date(D0); d.setDate(d.getDate() + i);
+    const wk = d.getDay() === 0 || d.getDay() === 6, dn = d.getDate();
+    if (i === 0 || dn === 1) months += `<span style="left:${i * dw}px">Tháng ${d.getMonth() + 1}/${d.getFullYear()}</span>`;
+    const show = dw >= 18 || dn === 1 || d.getDay() === 1 || i === ti;
+    daysH += `<span class="${wk ? 'wk' : ''}${i === ti ? ' td' : ''}" style="width:${dw}px">${show ? dn : ''}</span>`;
+    if (wk) bg += `<i class="gwk" style="left:${i * dw}px;width:${dw}px"></i>`;
+  }
+  bg += `<i class="gtoday" style="left:${ti * dw + dw / 2 - 1}px"></i>`;
+
+  let left = '', right = '';
+  for (const G of groups) {
+    const col = colorOf(G.g), shut = gtCollapsed.has(G.g);
+    const gDone = G.rs.filter(r => r.t.status === 'done').length;
+    left += `<div class="gt-row gt-grp" role="button" tabindex="0" data-gtg="${esc(G.g)}" aria-expanded="${!shut}"><span class="gchev${shut ? ' shut' : ''}">${ic('chev')}</span><span class="pdot2" style="--c:${col}"></span><b>${esc(groupLabel(G.g))}</b><span class="gcnt">${gDone}/${G.rs.length}</span></div>`;
+    right += `<div class="gt-trow gt-grp"><i class="gspan" style="--c:${col};left:${idx(G.s) * dw}px;width:${(idx(G.e) - idx(G.s) + 1) * dw}px" data-tip="${tip({ value: groupLabel(G.g), label: `${fmtDate(G.s).slice(0, 5)} đến ${fmtDate(G.e).slice(0, 5)}, ${G.rs.length} việc`, color: col, list: [] })}"></i></div>`;
+    if (shut) continue;
+    for (const { t, sp } of G.rs) {
+      const c = STATUS[t.status].color, p = progOf(t), a = idx(sp.s), b = idx(sp.e);
+      const late = isOverdue(t), ppl = peopleOf(t);
+      const lines = [`${fmtDate(sp.s)} đến ${fmtDate(sp.e)}, ${b - a + 1} ngày${sp.est ? ' (ngày bắt đầu ước tính)' : ''}`, `Tiến độ ${p}%${t.due && t.status !== 'done' ? `, ${dueText(t)}` : ''}`, ppl.length ? `Người làm: ${ppl.map(x => x.name).join(', ')}` : 'Chưa giao người'];
+      const tp = tip({ value: t.name, label: STATUS[t.status].label, color: c, list: lines });
+      left += `<div class="gt-row rowbtn" role="button" tabindex="0" data-open="${t.id}" data-tip="${tp}"><span class="gname">${esc(t.name)}</span><span class="gpc">${p}%</span></div>`;
+      right += `<div class="gt-trow">`
+        + `<div class="gb${sp.est ? ' est' : ''}" style="--c:${c};left:${a * dw + 1}px;width:${Math.max(dw - 2, (b - a + 1) * dw - 2)}px" data-open="${t.id}" data-tip="${tp}"><i class="tr"></i><i class="fl" style="width:${p}%"></i></div>`
+        + (late ? `<i class="gtail" style="left:${(b + 1) * dw}px;width:${Math.max(0, (ti - b) * dw)}px" data-open="${t.id}" data-tip="${tp}"></i>` : '')
+        + (narrow ? '' : `<span class="gppl" style="left:${(late ? ti + 1 : b + 1) * dw + 6}px">${esc(ppl.map(x => x.name.split(' ').pop()).join(', '))}</span>`)
+        + `</div>`;
+    }
+  }
+  const lg = `<div class="lgd gt-lgd">${STATUS_ORDER.map(s => `<span><i style="background:${STATUS[s].color}"></i>${STATUS[s].label}</span>`).join('')}<span><i class="lg-today"></i>Hôm nay</span><span><i class="lg-late"></i>Trễ hạn đến hôm nay</span><span><i class="lg-est"></i>Chưa đặt ngày bắt đầu</span></div>`;
+  return `<div class="card gt-card" id="dc-gantt"><div class="ch"><h3>Biểu đồ Gantt</h3><span class="cs">${rows.length} việc theo dự án, từ ngày bắt đầu đến hạn chót; phần đậm là tiến độ${noDue ? `, ${noDue} việc chưa có hạn chót không hiển thị` : ''}</span></div>${lg}
+    <div class="gantt" style="--lw:${labW}px">
+      <div class="gt-left"><div class="gt-head"><span>Công việc</span><span>Tiến độ</span></div>${left}</div>
+      <div class="gt-scroll" id="gtScroll"><div class="gt-inner" style="width:${W}px;--dw:${dw}px">
+        <div class="gt-head"><div class="gmonths">${months}</div><div class="gdays">${daysH}</div></div>
+        <div class="gt-body"><div class="gt-bg">${bg}</div>${right}</div>
+      </div></div>
+    </div></div>`;
+}
+function restoreGanttScroll() {
+  const sc = $('#gtScroll', dashEl); if (!sc) return;
+  if (gtScroll != null) { sc.scrollLeft = gtScroll; return; }
+  const tl = $('.gtoday', sc); if (tl && sc.scrollWidth > sc.clientWidth) sc.scrollLeft = Math.max(0, parseFloat(tl.style.left) - sc.clientWidth * 0.3);
+}
+dashEl.addEventListener('scroll', e => { if (e.target.id === 'gtScroll') { gtScroll = e.target.scrollLeft; hideTip(); } }, true);
+
 /* tooltip: values lead, labels follow; names are inserted as text, never as HTML */
 function showTip(i, x, y) {
   const o = tips[i]; if (!o) return hideTip();
@@ -2626,13 +2769,14 @@ dashEl.addEventListener('click', e => {
   const o = t.closest('[data-open]'); if (o) { const n = byId.get(o.dataset.open); if (n) openView(n); return; }
   const pj = t.closest('[data-proj]'); if (pj) { ui.dashF.proj = ui.dashF.proj === pj.dataset.proj ? ALL : pj.dataset.proj; saveUI(); renderDash(); return; }
   const dp = t.closest('[data-dept]'); if (dp) { ui.dashF.dept = ui.dashF.dept === dp.dataset.dept ? ALL : dp.dataset.dept; saveUI(); renderDash(); return; }
+  const gg = t.closest('[data-gtg]'); if (gg) { const k = gg.dataset.gtg; gtCollapsed.has(k) ? gtCollapsed.delete(k) : gtCollapsed.add(k); renderDash(); return; }
   if (t.closest('[data-clear]')) { ui.dashF = { proj: ALL, dept: ALL }; saveUI(); renderDash(); return; }
   if (t.closest('[data-more]')) { dashMore = !dashMore; renderDash(); return; }
   const j = t.closest('[data-jump]'); if (j) { const c = $(j.dataset.jump === 'attn' ? '#dc-attn' : '#dc-dl', dashEl); if (c) c.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); return; }
   const nw = t.closest('[data-new]'); if (nw) openForm(null, nw.dataset.new);
 });
 dashEl.addEventListener('keydown', e => {
-  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.rowbtn')) { e.preventDefault(); e.target.click(); }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.rowbtn,.gt-grp')) { e.preventDefault(); e.target.click(); }
 });
 
 /* ================= Boot ================= */

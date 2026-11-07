@@ -1,0 +1,2667 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#F5F6F8">
+<title>nodetodo – Quản lý người và việc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#FAFBFC;
+  --ink:#1B2030; --ink-2:#3D4354; --muted:#757B8C; --faint:#A5AAB7;
+  --line:#E4E6EB; --line-2:#EEF0F3;
+  --person:#E5484D; --person-soft:#FDEDEE;
+  --task:#3E63DD; --task-soft:#EDF1FD;
+  --ok:#2F9E68; --warn:#D9901A; --danger:#D9363E;
+  --sh-1:0 1px 2px rgba(20,28,48,.06),0 1px 1px rgba(20,28,48,.03);
+  --sh-2:0 10px 28px -10px rgba(20,28,48,.18),0 2px 6px rgba(20,28,48,.05);
+  --sh-3:0 28px 70px -18px rgba(20,28,48,.32),0 8px 20px rgba(20,28,48,.08);
+  --font:"Be Vietnam Pro",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);overflow:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--task);outline-offset:2px}
+svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+.app{position:fixed;inset:0;display:flex;flex-direction:column}
+
+/* ---------- Top bar ---------- */
+.topbar{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,440px) minmax(0,1fr);align-items:center;gap:20px;height:58px;padding:0 18px;padding-top:env(safe-area-inset-top);box-sizing:content-box;background:rgba(255,255,255,.8);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink);flex:none}
+.brand .logo{width:38px;height:38px;display:block;filter:drop-shadow(0 4px 10px rgba(27,32,48,.22))}
+.brand-text{display:flex;flex-direction:column;line-height:1}
+.brand-name{font-weight:800;font-size:19px;letter-spacing:-.035em}
+.brand-name span{color:var(--task)}
+.brand-sub{font-size:11.5px;color:var(--muted);font-weight:500;margin-top:4px;letter-spacing:-.005em}
+
+.tb-brand{display:flex;align-items:center;gap:18px;min-width:0}
+.tb-right{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
+.search{position:relative;width:100%}
+.search>svg.i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint);width:17px;height:17px;pointer-events:none}
+.search input{width:100%;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);padding:0 40px 0 38px;font:500 14px var(--font);color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s,background .15s;-webkit-appearance:none;appearance:none}
+.search input::-webkit-search-cancel-button{display:none}
+.search input::placeholder{color:var(--faint)}
+.search input:focus{border-color:#C3C9D6;background:#fff;box-shadow:0 0 0 4px rgba(62,99,221,.1)}
+.kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:600 11px var(--font);color:var(--muted);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;background:#fff;pointer-events:none}
+.search-close{display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;background:transparent;border-radius:8px;cursor:pointer;color:var(--muted);place-items:center}
+.qres{position:absolute;top:48px;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-3);padding:6px;max-height:min(60vh,440px);overflow:auto;animation:drop .18s var(--ease)}
+.qitem{display:flex;gap:11px;align-items:center;padding:8px 10px;border-radius:11px;cursor:pointer}
+.qitem.active,.qitem:hover{background:var(--line-2)}
+.qitem .qn{font-weight:700;font-size:14px;letter-spacing:-.01em}
+.qitem .qm{font-size:12px;color:var(--muted);margin-top:2px}
+.qitem .qt{margin-left:auto;font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.qempty{padding:14px;font-size:13px;color:var(--muted)}
+.pdot{width:12px;height:12px;border-radius:50%;flex:none;background:var(--c);box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ring)}
+.pdot.person{--ring:var(--person)} .pdot.task{--ring:var(--task)}
+
+.stats{display:flex;align-items:center;height:34px;padding:0 4px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line-2);white-space:nowrap}
+.stat{display:inline-flex;align-items:center;gap:6px;padding:0 10px;font:500 12.5px var(--font);color:var(--muted);position:relative}
+.stat b{color:var(--ink);font-weight:700}
+.stat .cd{width:7px;height:7px;border-radius:50%}
+.stat+.stat::before{content:"";position:absolute;left:0;top:50%;width:1px;height:14px;background:var(--line);transform:translateY(-50%)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line-2);font:500 12.5px var(--font);color:var(--muted);white-space:nowrap}
+.chip b{color:var(--ink);font-weight:700}
+.chip .cd{width:7px;height:7px;border-radius:50%}
+.chip.warn{background:#FFF0F0;border-color:#F8D3D5;color:#B42A31;cursor:pointer;transition:background .15s,color .15s}
+.chip.warn b{color:inherit}
+.chip.warn:hover{background:#FFE4E5}
+.chip.warn.on{background:var(--danger);border-color:var(--danger);color:#fff}
+
+.actions{display:flex;gap:8px;align-items:center;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font:600 13.5px/1 var(--font);cursor:pointer;box-shadow:var(--sh-1);transition:transform .12s,box-shadow .15s,background .15s,border-color .15s;white-space:nowrap;-webkit-user-select:none;user-select:none}
+.btn:hover{border-color:#D3D7DF;box-shadow:var(--sh-2)}
+.btn:active{transform:scale(.97)}
+.btn.icon{width:40px;padding:0}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.primary:hover{background:#262C40}
+.btn.ghost{box-shadow:none;background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--line-2);box-shadow:none}
+.btn.danger-ghost{box-shadow:none;background:transparent;border-color:transparent;color:var(--danger)}
+.btn.danger-ghost:hover{background:#FFF0F0}
+.btn.danger-ghost.armed{background:var(--danger);color:#fff}
+.plus{width:20px;height:20px;border-radius:7px;display:grid;place-items:center;color:#fff;flex:none}
+.plus svg.i{width:13px;height:13px;stroke-width:3}
+.plus.p{background:var(--person)} .plus.t{background:var(--task)}
+.lbl-s{display:none}
+.only-m{display:none!important}
+.menu-wrap{position:relative}
+.menu{position:absolute;right:0;top:48px;width:260px;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-3);padding:6px;animation:drop .18s var(--ease);z-index:30}
+.menu button{display:flex;align-items:center;gap:11px;width:100%;height:40px;padding:0 10px;border:0;background:transparent;border-radius:10px;font:500 13.5px var(--font);color:var(--ink);cursor:pointer;text-align:left}
+.menu button:hover{background:var(--line-2)}
+.menu button svg.i{color:var(--muted);width:17px;height:17px}
+.menu button kbd{margin-left:auto;font:600 11px var(--font);color:var(--muted)}
+.menu button.danger,.menu button.danger svg.i{color:var(--danger)}
+.msep{height:1px;background:var(--line-2);margin:5px 6px}
+.mfoot{padding:8px 10px 6px;font-size:11.5px;color:var(--faint)}
+
+/* ---------- Stage ---------- */
+#stage{position:relative;flex:1;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#cv.panning{cursor:grabbing}
+#cv.dragging{cursor:grabbing}
+
+.zone-pill{position:absolute;top:14px;left:0;display:flex;align-items:center;gap:8px;height:34px;padding:0 13px 0 6px;border-radius:999px;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);box-shadow:var(--sh-1);font:700 13px var(--font);letter-spacing:-.01em;pointer-events:none;z-index:4;white-space:nowrap;will-change:transform;transition:opacity .2s}
+.zone-pill.off{opacity:0}
+.zone-pill .zn{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font:800 12px var(--font)}
+#zone1 .zn{background:var(--person)} #zone2 .zn{background:var(--task)}
+.zone-pill .cnt{color:var(--muted);font-weight:600}
+
+.top-center{position:absolute;left:50%;top:60px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;z-index:9;pointer-events:none;width:max-content;max-width:calc(100% - 24px)}
+.bottom-center{position:absolute;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:11;pointer-events:none;width:max-content;max-width:min(560px,calc(100% - 24px))}
+body.linking #toasts{bottom:calc(84px + env(safe-area-inset-bottom))}
+.banner{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;border-radius:14px;background:var(--ink);color:#fff;font:500 13px/1.35 var(--font);box-shadow:var(--sh-3);animation:drop .22s var(--ease)}
+.banner b{font-weight:700}
+.banner button{height:30px;padding:0 12px;border:0;border-radius:9px;background:rgba(255,255,255,.14);color:#fff;font:600 12.5px var(--font);cursor:pointer;flex:none}
+.banner button:hover{background:rgba(255,255,255,.24)}
+.banner.light{background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:var(--sh-2)}
+.banner.light button{background:var(--line-2);color:var(--ink);width:30px;padding:0;display:grid;place-items:center}
+.bdot{width:10px;height:10px;border-radius:50%;flex:none}
+.bdot.person{background:var(--person)} .bdot.task{background:var(--task)}
+
+.floatbar{position:absolute;left:0;top:0;display:flex;align-items:center;gap:2px;padding:4px;border-radius:14px;background:rgba(27,32,48,.94);color:#fff;box-shadow:var(--sh-3);z-index:8;transform:translate(-50%,-100%);transform-origin:50% 100%;animation:pop .2s var(--ease);will-change:translate}
+.floatbar.below{transform:translate(-50%,0);transform-origin:50% 0}
+.floatbar button{height:34px;padding:0 11px;border:0;border-radius:10px;background:transparent;color:#fff;font:600 12.5px var(--font);display:inline-flex;gap:7px;align-items:center;cursor:pointer;white-space:nowrap}
+.floatbar button svg.i{width:16px;height:16px}
+.floatbar button:hover{background:rgba(255,255,255,.12)}
+.floatbar button.danger:hover{background:var(--danger)}
+.floatbar .sep{width:1px;height:20px;background:rgba(255,255,255,.16);margin:0 3px}
+.floatbar .ftext{padding:0 8px 0 6px;font:500 12.5px var(--font);color:rgba(255,255,255,.75);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.floatbar .ftext b{color:#fff;font-weight:700}
+
+.dock-left{position:absolute;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:flex-start;gap:10px;z-index:10;max-width:calc(100% - 32px)}
+.dock-right{position:absolute;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:row;align-items:center;gap:8px;z-index:10}
+.dock-btn{height:44px;border-radius:14px;box-shadow:var(--sh-2);padding:0 14px}
+.dock-btn svg.i{color:var(--muted)}
+.legend-btn{height:44px;border-radius:14px;box-shadow:var(--sh-2)}
+.hint{width:316px;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-2);padding:16px 16px 12px;animation:rise .35s var(--ease)}
+.hint h4{margin:0 0 10px;font:700 14px var(--font);letter-spacing:-.01em}
+.hint ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.hint li{display:flex;gap:10px;align-items:flex-start;font:500 12.5px/1.45 var(--font);color:var(--ink-2)}
+.hint li svg.i{width:16px;height:16px;color:var(--muted);margin-top:1px}
+.hint .hfoot{display:flex;justify-content:flex-end;margin-top:12px}
+.hint .hfoot .btn{height:32px;font-size:12.5px;padding:0 12px}
+.legend-wrap{position:relative}
+.legend{position:absolute;left:0;bottom:54px;width:300px;max-height:min(62vh,520px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh-3);padding:14px;animation:rise .2s var(--ease)}
+.lg-t{font:700 12.5px var(--font);color:var(--muted);margin:2px 2px 8px;display:flex;align-items:center;gap:8px}
+.lg-t:not(:first-child){margin-top:14px}
+.lg-t .bdot{width:8px;height:8px}
+.lg-list{display:flex;flex-wrap:wrap;gap:6px}
+.lg-item{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 10px 0 9px;border-radius:999px;border:1px solid var(--line);background:#fff;font:600 12.5px var(--font);cursor:pointer;transition:background .15s,border-color .15s}
+.lg-item:hover{background:var(--surface-2);border-color:#D3D7DF}
+.lg-item i{width:10px;height:10px;border-radius:50%;flex:none}
+.lg-item span{color:var(--muted);font-weight:600}
+.lg-item.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.lg-item.on span{color:rgba(255,255,255,.7)}
+.lg-empty{font-size:12.5px;color:var(--faint)}
+
+.toggle{display:flex;align-items:center;gap:10px;height:44px;padding:0 9px 0 13px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-2);font:600 13px var(--font);color:var(--ink);cursor:pointer;-webkit-user-select:none;user-select:none}
+.toggle svg.i{color:var(--muted);width:17px;height:17px;transition:color .2s}
+.toggle.on svg.i{color:var(--task)}
+.switch{width:38px;height:22px;border-radius:999px;background:#D5D9E1;position:relative;transition:background .2s;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .28s cubic-bezier(.3,1.5,.5,1)}
+.toggle.on .switch{background:var(--ink)}
+.toggle.on .switch::after{transform:translateX(16px)}
+.zoom{display:flex;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-2);padding:4px;gap:2px}
+.zoom button{width:36px;height:36px;border:0;background:transparent;border-radius:10px;display:grid;place-items:center;cursor:pointer;color:var(--ink-2)}
+.zoom button:hover{background:var(--line-2)}
+.zoom .pct{width:auto;min-width:54px;font:600 12.5px var(--font);font-variant-numeric:tabular-nums}
+.zsep{width:1px;height:20px;background:var(--line);margin:0 2px}
+
+.empty{position:absolute;inset:0;display:grid;place-items:center;z-index:7;pointer-events:none}
+.empty-card{pointer-events:auto;width:min(420px,calc(100% - 32px));background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--sh-3);padding:28px;text-align:center;animation:rise .35s var(--ease)}
+.empty-card .logo{width:56px;height:56px;margin:0 auto 14px;display:block}
+.empty-card h3{margin:0;font:800 22px/1.25 var(--font);letter-spacing:-.025em}
+.empty-card p{margin:8px auto 20px;font:500 14px/1.55 var(--font);color:var(--muted);max-width:32ch}
+.empty-card .row-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.empty-card .lnk{margin-top:14px;border:0;background:none;color:var(--task);font:600 13px var(--font);cursor:pointer}
+
+/* ---------- Modal ---------- */
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(20,24,36,.34);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:fade .2s ease}
+.sheet{width:min(540px,calc(100vw - 32px));max-height:min(88vh,800px);display:flex;flex-direction:column;background:#fff;border-radius:24px;box-shadow:var(--sh-3);overflow:hidden;animation:rise .3s var(--ease)}
+.sheet:focus{outline:none}
+.sheet-head{position:relative;padding:22px 24px 6px}
+.sheet-body{padding:6px 24px 20px;overflow:auto;overscroll-behavior:contain}
+.sheet-foot{display:flex;gap:8px;align-items:center;padding:12px 16px calc(12px + env(safe-area-inset-bottom)) 16px;border-top:1px solid var(--line-2);background:var(--surface-2)}
+.sheet-foot .sp{flex:1}
+.close-x{position:absolute;top:14px;right:14px;z-index:2}
+.kind{display:inline-flex;align-items:center;gap:7px;font:600 12.5px var(--font);color:var(--muted);margin-bottom:14px}
+.kind .bdot{width:8px;height:8px}
+.vh{display:flex;gap:18px;align-items:center;padding-right:36px}
+.vh-text{min-width:0}
+.v-name{margin:0;font:800 27px/1.18 var(--font);letter-spacing:-.03em;word-break:break-word}
+.v-sub{margin-top:5px;font:500 14px/1.4 var(--font);color:var(--muted)}
+.pav{--c:#999;width:64px;height:64px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--c);color:#fff;font:800 21px var(--font);letter-spacing:-.02em;box-shadow:0 0 0 3px #fff,0 0 0 6px var(--person)}
+.pav.sm{width:32px;height:32px;font-size:11.5px;box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--person)}
+.tav{--c:#999;--p:0;width:70px;height:70px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(var(--task) calc(var(--p)*1%),rgba(62,99,221,.2) 0)}
+.tav>span{width:54px;height:54px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px #fff;display:grid;place-items:center;color:#fff;font:800 15px var(--font);letter-spacing:-.02em}
+.tav.sm{width:32px;height:32px}
+.tav.sm>span{width:22px;height:22px;box-shadow:0 0 0 2px #fff;font-size:0}
+.tav.done>span{background:var(--c) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/52% no-repeat;font-size:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 4px}
+.tag{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:999px;font:600 12.5px var(--font);background:var(--line-2);color:var(--ink-2)}
+.tag .d{width:8px;height:8px;border-radius:50%;flex:none}
+.tag.danger{background:#FFEDEE;color:#B42A31}
+.tag.warn{background:#FFF5E1;color:#996000}
+.tag.ok{background:#E7F6EE;color:#1E7A4D}
+.prog{margin:14px 0 2px}
+.prog-top{display:flex;justify-content:space-between;font:600 12.5px var(--font);color:var(--muted);margin-bottom:7px}
+.prog-top b{color:var(--ink);font-weight:700}
+.bar{height:8px;border-radius:99px;background:var(--task-soft);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--task);border-radius:inherit;transition:width .4s var(--ease)}
+.rows{margin-top:10px}
+.row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-2);font:500 13.5px/1.45 var(--font)}
+.row:last-child{border-bottom:0}
+.row .k{width:96px;flex:none;color:var(--muted);display:flex;gap:7px;align-items:center;font-size:12.5px;height:20px}
+.row .k svg.i{width:15px;height:15px}
+.row .v{flex:1;min-width:0;word-break:break-word;color:var(--ink);white-space:pre-wrap}
+.row .v a{color:var(--task);text-decoration:none;font-weight:600}
+.row .v .od{color:var(--danger);font-weight:600}
+.muted-note{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px dashed var(--line);font:500 13px/1.5 var(--font);color:var(--muted)}
+.sec{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:22px 0 10px}
+.sec h5{margin:0;font:700 14.5px var(--font);letter-spacing:-.01em}
+.sec h5 span{color:var(--muted);font-weight:600}
+.sec .lnk{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:9px;border:1px solid var(--line);background:#fff;font:600 12.5px var(--font);cursor:pointer}
+.sec .lnk:hover{background:var(--surface-2)}
+.sec .lnk svg.i{width:14px;height:14px}
+.litem{display:flex;align-items:center;gap:12px;padding:9px 8px 9px 10px;border:1px solid var(--line-2);border-radius:14px;margin-bottom:6px;cursor:pointer;transition:background .15s,border-color .15s}
+.litem:hover{background:var(--surface-2);border-color:var(--line)}
+.li-main{flex:1;min-width:0}
+.li-main .nm{font:700 14px/1.3 var(--font);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-main .mt{font:500 12px/1.4 var(--font);color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-main .mt .od{color:var(--danger);font-weight:600}
+.st{display:inline-flex;align-items:center;gap:5px}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--sc)}
+.x-btn{width:30px;height:30px;border:0;background:transparent;border-radius:9px;display:grid;place-items:center;color:var(--faint);cursor:pointer;flex:none}
+.x-btn:hover{background:#FFEDEE;color:var(--danger)}
+.x-btn svg.i{width:15px;height:15px}
+.empty-line{font:500 13px var(--font);color:var(--faint);padding:10px 2px}
+
+/* form */
+.f-name{width:100%;border:0;border-bottom:2px solid var(--line);padding:4px 0 10px;font:800 25px/1.25 var(--font);letter-spacing:-.03em;color:var(--ink);outline:none;background:transparent;border-radius:0;transition:border-color .2s}
+.f-name::placeholder{color:#C4C8D2}
+.f-name:focus{border-color:var(--ink)}
+.f-name.err{border-color:var(--danger)}
+.f-err{font:600 12px var(--font);color:var(--danger);margin-top:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;margin-top:20px}
+.full{grid-column:1/-1}
+.field label{display:flex;align-items:center;gap:6px;font:600 12.5px var(--font);color:var(--muted);margin-bottom:6px}
+.field input:not([type=range]):not([type=checkbox]),.field select,.field textarea{width:100%;height:42px;border:1px solid var(--line);border-radius:12px;padding:0 12px;font:500 14px var(--font);background:#fff;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+.field select{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23757B8C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 12px center/16px no-repeat;padding-right:36px;cursor:pointer}
+.field textarea{height:auto;min-height:84px;padding:10px 12px;resize:vertical;line-height:1.5}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#B9C0CF;box-shadow:0 0 0 4px rgba(62,99,221,.1)}
+.gwrap{position:relative}
+.gwrap input{padding-left:34px!important}
+.gwrap .gsw{position:absolute;left:12px;top:50%;width:12px;height:12px;border-radius:50%;transform:translateY(-50%);background:var(--c,#C9CDD6);transition:background .2s}
+.range-row{display:flex;align-items:center;gap:14px}
+.range-row output{min-width:48px;text-align:right;font:700 15px var(--font);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:8px;border-radius:99px;background:linear-gradient(var(--task),var(--task)) 0/var(--v,0%) 100% no-repeat,var(--task-soft);outline:none;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--task);box-shadow:var(--sh-1)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid var(--task)}
+.picker{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pk-search{position:relative;border-bottom:1px solid var(--line-2)}
+.pk-search svg.i{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--faint)}
+.pk-search input{width:100%;height:40px;border:0;padding:0 12px 0 36px;font:500 13.5px var(--font);outline:none;background:var(--surface-2)}
+.pk-list{max-height:232px;overflow:auto;padding:4px}
+.pitem{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:10px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.pitem:hover{background:var(--surface-2)}
+.pitem input{position:absolute;opacity:0;pointer-events:none}
+.pbox{width:20px;height:20px;border-radius:6px;border:1.5px solid #C9CDD6;display:grid;place-items:center;flex:none;transition:background .15s,border-color .15s}
+.pbox svg{width:13px;height:13px;stroke:#fff;stroke-width:3.2;fill:none;opacity:0;transition:opacity .15s}
+.pitem input:checked+.pbox{background:var(--ink);border-color:var(--ink)}
+.pitem input:checked+.pbox svg{opacity:1}
+.pitem input:focus-visible+.pbox{outline:2px solid var(--task);outline-offset:2px}
+.pitem .pn{font:600 13.5px var(--font);min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pitem .pm{font:500 12px var(--font);color:var(--muted);white-space:nowrap;max-width:42%;overflow:hidden;text-overflow:ellipsis}
+.pk-count{font:600 12.5px var(--font);color:var(--muted)}
+
+.confirm-body{padding:26px 24px 8px}
+.confirm-body h3{margin:0 0 8px;font:800 20px/1.3 var(--font);letter-spacing:-.02em}
+.confirm-body p{margin:0;font:500 14px/1.55 var(--font);color:var(--ink-2)}
+
+/* ---------- Toasts ---------- */
+#toasts{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;z-index:60;pointer-events:none;width:max-content;max-width:calc(100vw - 24px)}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;max-width:100%;background:var(--ink);color:#fff;padding:10px 10px 10px 16px;border-radius:14px;font:500 13.5px/1.4 var(--font);box-shadow:var(--sh-3);animation:rise .25s var(--ease)}
+.toast.plain{padding-right:16px}
+.toast.warn{background:#fff;color:var(--ink);border:1px solid #F3C7CA;padding-right:16px}
+.toast.warn::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--danger);flex:none}
+.toast button{height:30px;padding:0 12px;border:0;border-radius:9px;background:rgba(255,255,255,.14);color:#fff;font:700 12.5px var(--font);cursor:pointer;flex:none}
+.toast button:hover{background:rgba(255,255,255,.25)}
+.toast.out{opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s}
+
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(12px) scale(.985)}}
+@keyframes drop{from{opacity:0;transform:translateY(-6px)}}
+@keyframes pop{from{opacity:0;scale:.9}}
+@keyframes slideup{from{transform:translateY(100%)}}
+
+/* ---------- Tabs ---------- */
+.tabs{display:inline-flex;align-items:center;gap:2px;padding:3px;border-radius:12px;background:var(--line-2);border:1px solid var(--line);flex:none}
+.tab{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border:0;border-radius:9px;background:transparent;color:var(--muted);font:600 13px var(--font);cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,box-shadow .15s}
+.tab svg.i{width:16px;height:16px}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{background:#fff;color:var(--ink);box-shadow:var(--sh-1)}
+
+/* ---------- Dashboard ---------- */
+.dash{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;padding:22px 28px 40px;background:var(--bg);display:none;-webkit-overflow-scrolling:touch}
+.is-dash .dash{display:block}
+.is-dash #cv,.is-dash .zone-pill,.is-dash .dock-left,.is-dash .dock-right,.is-dash .floatbar,.is-dash .top-center,.is-dash .bottom-center,.is-dash #empty{display:none!important}
+.dwrap{max-width:1500px;margin:0 auto}
+.dhead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;margin-bottom:16px}
+.dhead h2{margin:0;font:800 23px/1.2 var(--font);letter-spacing:-.025em}
+.dhead .dsub{margin-top:5px;font:500 13px var(--font);color:var(--muted)}
+.dfilters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dsel{position:relative;display:inline-flex;align-items:center}
+.dsel>span{position:absolute;left:12px;font:600 12.5px var(--font);color:var(--muted);pointer-events:none}
+.dsel select{height:38px;min-width:200px;max-width:280px;border:1px solid var(--line);border-radius:11px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23757B8C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 10px center/15px no-repeat;padding:0 32px 0 var(--pl,72px);font:600 13px var(--font);color:var(--ink);-webkit-appearance:none;appearance:none;cursor:pointer;outline:none;box-shadow:var(--sh-1)}
+.dsel select:focus-visible{border-color:#B9C0CF;box-shadow:0 0 0 4px rgba(62,99,221,.12)}
+.dsel select.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.dclear{height:38px;padding:0 12px;border:0;background:transparent;border-radius:10px;font:600 13px var(--font);color:var(--task);cursor:pointer}
+.dclear:hover{background:var(--task-soft)}
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.kpi{position:relative;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;min-width:0;min-height:128px;text-align:left;font:inherit;color:inherit}
+button.kpi{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+button.kpi:hover{border-color:#D3D7DF;box-shadow:var(--sh-2)}
+.kl{display:flex;align-items:center;gap:7px;font:600 12.5px var(--font);color:var(--muted)}
+.kl svg.i{width:15px;height:15px}
+.kv{margin-top:9px;font:700 28px/1 var(--font);letter-spacing:-.03em;color:var(--ink)}
+.kv small{font:600 14px var(--font);letter-spacing:0;color:var(--muted);margin-left:3px}
+.kc{margin-top:auto;padding-top:9px;font:500 12px/1.45 var(--font);color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kmeter{margin-top:10px;height:6px;border-radius:99px;background:var(--task-soft);overflow:hidden}
+.kmeter i{display:block;height:100%;border-radius:99px;background:var(--task)}
+.dgrid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:12px;align-items:start}
+.dcol{display:grid;gap:12px;min-width:0}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 18px 14px;min-width:0}
+.ch{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 2px 14px}
+.ch h3{margin:0;font:700 15.5px/1.3 var(--font);letter-spacing:-.012em}
+.ch .cs{font:500 12.5px var(--font);color:var(--muted);white-space:nowrap}
+.lgd{display:flex;flex-wrap:wrap;gap:6px 14px;margin:-4px 2px 10px;font:500 12px var(--font);color:var(--ink-2)}
+.lgd span{display:inline-flex;align-items:center;gap:6px}
+.lgd i{width:10px;height:10px;border-radius:3px;flex:none}
+.rowbtn{cursor:pointer;border-radius:12px;transition:background .12s}
+.rowbtn:hover,.rowbtn:focus-visible{background:var(--surface-2)}
+.rowbtn.on{background:var(--task-soft)}
+.av{--c:#999;width:28px;height:28px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--c);color:#fff;font:700 10.5px var(--font);box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--person)}
+.avs{display:flex;align-items:center}
+.avs{gap:7px}
+.avs .av{width:24px;height:24px;font-size:9.5px}
+.avs .more{margin-left:6px;font:600 11.5px var(--font);color:var(--muted)}
+.nm2{min-width:0}
+.nm2 b{display:block;font:700 13.5px/1.3 var(--font);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm2 span{display:block;font:500 11.5px/1.35 var(--font);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opill{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:99px;background:#FFEDEE;color:#B42A31;font:600 11.5px var(--font);white-space:nowrap}
+.opill svg.i{width:12px;height:12px}
+.opill.warn{background:#FFF5E1;color:#8A5A00}
+.opill.gray{background:var(--line-2);color:var(--ink-2)}
+/* workload */
+.wrow{display:grid;grid-template-columns:minmax(140px,210px) minmax(0,1fr);gap:14px;align-items:center;padding:7px 8px}
+.who{display:flex;align-items:center;gap:11px;min-width:0}
+.wbar{display:flex;align-items:center;gap:10px;min-width:0;height:28px}
+.bars{display:flex;gap:2px;height:14px;width:calc((100% - 132px) * var(--w));min-width:4px;flex:none}
+.bars i{display:block;height:100%;background:var(--c);flex:var(--n) 1 0;min-width:3px}
+.bars i:last-child{border-radius:0 4px 4px 0}
+.bars i:hover{filter:brightness(1.12)}
+.wv{display:flex;align-items:center;gap:6px;font:600 12.5px var(--font);color:var(--ink-2);white-space:nowrap}
+.wv.zero{color:var(--faint)}
+/* status segmented bar */
+.seg{display:flex;gap:2px;height:28px}
+.seg i{display:flex;align-items:center;padding-left:8px;height:100%;border-radius:4px;background:var(--c);flex:var(--n) 1 0;min-width:4px;font:700 11.5px var(--font);font-style:normal;color:#fff;white-space:nowrap;overflow:hidden}
+.seg i.dk{color:#1B2030}
+.seg i:hover{filter:brightness(1.1)}
+.seglgd{margin:10px 2px 0}
+.subh{margin:18px 2px 10px;font:700 13.5px var(--font);letter-spacing:-.01em}
+.prio{display:grid;grid-template-columns:118px minmax(0,1fr);gap:10px;align-items:center;padding:4px 2px}
+.prio .pl{display:flex;align-items:center;gap:7px;font:600 12.5px var(--font);color:var(--ink-2)}
+.prio .pl svg.i{width:14px;height:14px}
+.hb{display:flex;align-items:center;gap:8px;min-width:0}
+.hb i{display:block;height:12px;background:var(--task);border-radius:0 4px 4px 0;width:calc((100% - 70px) * var(--w));min-width:0}
+.hb span{font:600 12.5px var(--font);color:var(--ink-2);white-space:nowrap}
+/* projects */
+.prow{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,240px) 168px;gap:16px;align-items:center;padding:9px 8px}
+.pname{display:flex;align-items:center;gap:10px;min-width:0}
+.pdot2{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c)}
+.pmeter{display:flex;align-items:center;gap:10px}
+.pmeter .tr{flex:1;height:8px;border-radius:99px;background:var(--task-soft);overflow:hidden}
+.pmeter .tr i{display:block;height:100%;border-radius:99px;background:var(--task)}
+.pmeter b{min-width:38px;text-align:right;font:700 13px var(--font);font-variant-numeric:tabular-nums}
+.pbadges{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.pbadges .cnt{font:600 12px var(--font);color:var(--muted);white-space:nowrap}
+/* deadline columns */
+.cc{--ph:150px;padding:4px 2px 0}
+.cc-plot{position:relative;height:var(--ph);margin-left:26px}
+.gl{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line-2)}
+.gl span{position:absolute;right:calc(100% + 8px);top:-7px;font:500 11px var(--font);color:var(--faint);font-variant-numeric:tabular-nums}
+.gl.base{border-top-color:var(--line)}
+.cc-cols{position:absolute;inset:0;display:flex}
+.cc-col{flex:1;display:flex;align-items:flex-end;justify-content:center;cursor:default;min-width:0}
+.cc-col.over{margin-right:10px;border-right:1px solid var(--line-2)}
+.cc-col b{display:block;width:min(18px,62%);background:var(--task);border-radius:4px 4px 0 0}
+.cc-col.over b{background:var(--danger)}
+.cc-col:hover b{filter:brightness(1.12)}
+.cc-col.today{background:linear-gradient(rgba(62,99,221,.06),rgba(62,99,221,.06))}
+.cc-x{display:flex;margin-left:26px;margin-top:6px}
+.cc-x div{flex:1;text-align:center;min-width:0;font:500 10.5px/1.25 var(--font);color:var(--muted);font-variant-numeric:tabular-nums}
+.cc-x div b{display:block;font:600 11.5px var(--font);color:var(--ink-2)}
+.cc-x div.over{margin-right:10px}
+.cc-x div.today b{color:var(--task)}
+.cnote{margin:12px 2px 0;font:500 12px var(--font);color:var(--muted)}
+/* attention list */
+.arow{display:grid;grid-template-columns:132px minmax(0,1fr) auto 44px;gap:12px;align-items:center;padding:8px 8px}
+.arow .pc{font:700 12.5px var(--font);text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.amore{display:block;margin:6px auto 0;border:0;background:none;color:var(--task);font:600 13px var(--font);cursor:pointer;padding:6px 10px;border-radius:9px}
+.amore:hover{background:var(--task-soft)}
+.allgood{display:flex;align-items:center;gap:10px;padding:14px 10px;font:500 13px var(--font);color:var(--muted)}
+.allgood svg.i{color:var(--ok)}
+/* departments */
+.dtable{width:100%;border-collapse:separate;border-spacing:0;font:500 13px var(--font)}
+.dtable th{font:600 12px var(--font);color:var(--muted);text-align:right;padding:0 8px 8px;white-space:nowrap}
+.dtable th:first-child{text-align:left}
+.dtable td{padding:9px 8px;border-top:1px solid var(--line-2);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dtable td:first-child{text-align:left;white-space:normal}
+.dtable tr.rowbtn td:first-child{border-radius:10px 0 0 10px}
+.dtable tr.rowbtn td:last-child{border-radius:0 10px 10px 0}
+.dtable tr.rowbtn:hover td,.dtable tr.rowbtn.on td{background:var(--surface-2)}
+.dtable tr.rowbtn.on td{background:var(--task-soft)}
+.dn{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.idle{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.idle button{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 10px 0 4px;border-radius:99px;border:1px solid var(--line);background:#fff;font:600 12.5px var(--font);cursor:pointer}
+.idle button:hover{background:var(--surface-2)}
+.idle .av{width:22px;height:22px;font-size:9px;box-shadow:none}
+.dempty{display:grid;place-items:center;min-height:60vh}
+/* tooltip */
+.dtip{position:fixed;left:0;top:0;z-index:70;pointer-events:none;min-width:150px;max-width:290px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-3);padding:10px 12px 9px}
+.dtip .tv{font:700 15px/1.25 var(--font);color:var(--ink);letter-spacing:-.01em}
+.dtip .tl{display:flex;align-items:center;gap:7px;margin-top:3px;font:500 12px var(--font);color:var(--muted)}
+.dtip .tl i{width:12px;height:3px;border-radius:2px;flex:none}
+.dtip ul{margin:7px 0 0;padding:7px 0 0;border-top:1px solid var(--line-2);list-style:none;display:grid;gap:3px}
+.dtip li{font:500 12px/1.4 var(--font);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- Responsive ---------- */
+@media (max-width:2199px){
+  .brand-sub{display:none}
+}
+@media (max-width:1899px){
+  .stats{display:none}
+}
+@media (max-width:1280px){
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:1100px){
+  .dgrid{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:760px){
+  .topbar{display:flex;height:58px;gap:8px;padding-left:12px;padding-right:12px}
+  .tb-right{margin-left:auto;gap:6px}
+  .dock-btn{width:44px;padding:0}
+  .brand-sub{display:none}
+  .brand .logo{width:34px;height:34px}
+  .brand-name{font-size:18px}
+  .search{display:none}
+  .only-m{display:inline-flex!important}
+  .lbl{display:none}
+  .lbl-s{display:inline}
+  .btn{padding:0 11px;gap:7px}
+  .actions{gap:6px}
+  .chip.warn{padding:0 9px}
+  .chip.warn .cw-l{display:none}
+  .topbar.searching .search{display:block;position:absolute;left:12px;right:12px;top:calc(9px + env(safe-area-inset-top));margin:0;max-width:none;z-index:3}
+  .topbar.searching .search input{background:#fff;height:40px}
+  .topbar.searching .kbd{display:none}
+  .topbar.searching .search-close{display:grid}
+  .dock-right{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));flex-direction:row;justify-content:space-between;align-items:center;pointer-events:none}
+  .dock-right>*{pointer-events:auto}
+  .dock-left{left:12px;bottom:calc(70px + env(safe-area-inset-bottom));max-width:calc(100% - 24px)}
+  .zoom .pct{display:none}
+  .legend-btn .lbl{display:none}
+  .legend{width:min(320px,calc(100vw - 24px))}
+  .hint{width:min(340px,calc(100vw - 24px))}
+  .modal{place-items:end center}
+  .sheet{width:100%;max-height:92vh;max-height:92dvh;border-radius:24px 24px 0 0;animation:slideup .32s var(--ease)}
+  .sheet::before{content:"";display:block;width:40px;height:4px;border-radius:9px;background:#D5D9E1;margin:8px auto 0;flex:none}
+  .sheet-head{padding:12px 18px 4px}
+  .sheet-body{padding:6px 18px 18px}
+  .v-name{font-size:24px}
+  .pav{width:56px;height:56px;font-size:19px}
+  .tav{width:62px;height:62px}.tav>span{width:47px;height:47px}
+  .floatbar button span{display:none}
+  .floatbar button{padding:0 10px}
+  #toasts{bottom:calc(76px + env(safe-area-inset-bottom))}
+  .top-center{top:56px}
+  .bottom-center{bottom:calc(126px + env(safe-area-inset-bottom))}
+  body.linking #toasts{bottom:calc(196px + env(safe-area-inset-bottom))}
+}
+@media (max-width:760px){
+  .tab .tl{display:none}
+  .tab{padding:0 9px}
+  .dash{padding:14px 12px 40px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ch{flex-direction:column;align-items:flex-start;gap:3px}
+  .ch .cs{white-space:normal}
+  .wrow{grid-template-columns:minmax(0,1fr);gap:6px;padding:8px 4px}
+  .bars{width:calc((100% - 160px) * var(--w))}
+  .prow{grid-template-columns:minmax(0,1fr) 120px;gap:10px}
+  .prow .pbadges{grid-column:1/-1;justify-content:flex-start}
+  .arow{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}
+  .arow .opill{grid-column:1/-1;justify-self:start}
+  .arow .pc{display:none}
+  .dsel select{min-width:0;width:100%}
+  .dfilters{width:100%}
+  .dsel{flex:1}
+  .card{padding:16px 12px 12px}
+}
+@media (max-width:520px){
+  .lbl-s{display:none}
+  #addP,#addT{width:40px;padding:0}
+}
+@media (max-width:420px){
+  .grid2{grid-template-columns:1fr}
+  .brand-text{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar" id="topbar">
+    <div class="tb-brand">
+    <a class="brand" href="#" id="brand" aria-label="nodetodo">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+        <defs>
+          <linearGradient id="lgBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A3048"/><stop offset="1" stop-color="#161A28"/></linearGradient>
+          <linearGradient id="lgLn" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FF7A7E"/><stop offset="1" stop-color="#7C96FF"/></linearGradient>
+        </defs>
+        <rect width="40" height="40" rx="11.5" fill="url(#lgBg)"/>
+        <path d="M11.5 25.5C20 25.5 19.5 30 28.5 30" stroke="#fff" stroke-opacity=".28" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M11.5 25.5C20.5 25.5 19.5 13.5 28.5 13.5" stroke="url(#lgLn)" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <circle cx="11.5" cy="25.5" r="5.4" fill="#161A28" stroke="#FF5C61" stroke-width="2.4"/>
+        <circle cx="11.5" cy="25.5" r="2.1" fill="#FF8D90"/>
+        <circle cx="28.5" cy="30" r="2.6" fill="#161A28" stroke="#6E8BFF" stroke-width="1.6"/>
+        <circle cx="28.5" cy="13.5" r="6" fill="#3E63DD"/>
+        <path d="M25.8 13.6l1.8 1.8 3.4-3.6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-text"><span class="brand-name">node<span>todo</span></span><span class="brand-sub">Người và việc, nối thành mạng</span></span>
+    </a>
+      <div class="tabs" role="tablist" aria-label="Chế độ xem">
+        <button class="tab" role="tab" data-tab="map" aria-selected="true" title="Sơ đồ người và việc"><svg class="i" data-ic="map"></svg><span class="tl">Sơ đồ</span></button>
+        <button class="tab" role="tab" data-tab="dash" aria-selected="false" title="Dashboard tổng quan"><svg class="i" data-ic="chart"></svg><span class="tl">Dashboard</span></button>
+      </div>
+      <div class="stats" id="stats">
+        <span class="stat"><span class="cd" style="background:var(--person)"></span><b id="stP">0</b> người</span>
+        <span class="stat"><span class="cd" style="background:var(--task)"></span><b id="stT">0</b> việc</span>
+        <span class="stat"><b id="stL">0</b> kết nối</span>
+      </div>
+    </div>
+
+    <div class="search" id="searchBox">
+      <svg class="i" data-ic="search"></svg>
+      <input id="q" type="search" placeholder="Tìm người, công việc, dự án…" autocomplete="off" spellcheck="false" aria-label="Tìm kiếm">
+      <span class="kbd">/</span>
+      <button class="search-close" id="searchClose" aria-label="Đóng tìm kiếm"><svg class="i" data-ic="x"></svg></button>
+      <div class="qres" id="qres" hidden></div>
+    </div>
+
+    <div class="tb-right">
+    <button class="chip warn" id="stO" hidden title="Lọc việc quá hạn"><svg class="i" data-ic="alert" style="width:14px;height:14px"></svg><b id="stOn">0</b><span class="cw-l">quá hạn</span></button>
+    <div class="actions">
+      <button class="btn icon only-m" id="searchBtn" aria-label="Tìm kiếm"><svg class="i" data-ic="search"></svg></button>
+      <button class="btn" id="addP" title="Thêm nhân sự (N)"><span class="plus p"><svg class="i" data-ic="plus"></svg></span><span class="lbl">Nhân sự</span><span class="lbl-s">Người</span></button>
+      <button class="btn" id="addT" title="Thêm công việc (C)"><span class="plus t"><svg class="i" data-ic="plus"></svg></span><span class="lbl">Công việc</span><span class="lbl-s">Việc</span></button>
+      <div class="menu-wrap">
+        <button class="btn icon" id="menuBtn" aria-label="Thêm tùy chọn" aria-haspopup="true"><svg class="i" data-ic="more"></svg></button>
+        <div class="menu" id="menu" hidden>
+          <button data-m="export"><svg class="i" data-ic="download"></svg>Xuất dữ liệu (JSON)</button>
+          <button data-m="import"><svg class="i" data-ic="upload"></svg>Nhập dữ liệu (JSON)</button>
+          <div class="msep"></div>
+          <button data-m="layout"><svg class="i" data-ic="grid"></svg>Dàn đều các node<kbd>R</kbd></button>
+          <button data-m="fit"><svg class="i" data-ic="fit"></svg>Xem toàn bộ<kbd>F</kbd></button>
+          <button data-m="undo"><svg class="i" data-ic="undo"></svg>Hoàn tác<kbd>Ctrl Z</kbd></button>
+          <button data-m="help"><svg class="i" data-ic="info"></svg>Hướng dẫn nhanh</button>
+          <div class="msep"></div>
+          <button data-m="sample"><svg class="i" data-ic="refresh"></svg>Nạp dữ liệu mẫu</button>
+          <button data-m="clear" class="danger"><svg class="i" data-ic="trash"></svg>Xóa toàn bộ dữ liệu</button>
+          <div class="mfoot">nodetodo 1.3, by Nguyễn Mạnh Hùng</div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </header>
+
+  <main id="stage">
+    <canvas id="cv" aria-label="Sơ đồ nhân sự và công việc"></canvas>
+    <div class="zone-pill" id="zone1"><span class="zn">1</span>Nhân sự <span class="cnt" id="z1c">0</span></div>
+    <div class="zone-pill" id="zone2"><span class="zn">2</span>Công việc <span class="cnt" id="z2c">0</span></div>
+    <div class="top-center">
+      <div class="banner light" id="filterPill" hidden></div>
+    </div>
+    <div class="bottom-center">
+      <div class="banner" id="linkBanner" hidden></div>
+    </div>
+    <div class="floatbar" id="nodeBar" hidden></div>
+    <div class="floatbar" id="linkBar" hidden></div>
+
+    <div class="dock-left">
+      <div class="hint" id="hint" hidden>
+        <h4>Làm quen trong 30 giây</h4>
+        <ul>
+          <li><svg class="i" data-ic="move"></svg><span>Vạch đỏ luôn cố định ở giữa. Kéo nền để cuộn lên xuống, cuộn chuột hoặc chụm 2 ngón để phóng to, thu nhỏ.</span></li>
+          <li><svg class="i" data-ic="hand"></svg><span>Nhấn đúp (chạm 2 lần) vào node để xem và sửa thông tin.</span></li>
+          <li><svg class="i" data-ic="link"></svg><span>Kéo chấm <b>+</b> cạnh node sang node khu bên kia để nối người với việc.</span></li>
+          <li><svg class="i" data-ic="plus"></svg><span>Nhấn đúp vào chỗ trống ở khu 1 hoặc khu 2 để tạo node mới tại đó.</span></li>
+          <li><svg class="i" data-ic="grid"></svg><span>Kéo thả node tới đâu, node nằm yên ở đó. Bấm <b>Dàn đều</b> để dàn lại toàn bộ ra kín màn hình.</span></li>
+        </ul>
+        <div class="hfoot"><button class="btn primary" id="hintOk">Đã hiểu</button></div>
+      </div>
+      <div class="legend-wrap">
+        <button class="btn legend-btn" id="legendBtn" aria-haspopup="true"><svg class="i" data-ic="layers"></svg><span class="lbl">Nhóm màu và bộ lọc</span></button>
+        <div class="legend" id="legend" hidden></div>
+      </div>
+    </div>
+
+    <div class="dock-right">
+      <button class="btn dock-btn" id="layoutBtn" title="Dàn đều: các node giãn cách đều, gọn gàng (R)"><svg class="i" data-ic="grid"></svg><span class="lbl">Dàn đều</span></button>
+      <button class="toggle" id="physBtn" title="Bật để các node tự hút, đẩy và gom cụm"><svg class="i" data-ic="sparkle"></svg><span>Tự sắp xếp</span><span class="switch"></span></button>
+      <div class="zoom">
+        <button id="zOut" aria-label="Thu nhỏ"><svg class="i" data-ic="minus"></svg></button>
+        <button class="pct" id="zPct" title="Về 100%">100%</button>
+        <button id="zIn" aria-label="Phóng to"><svg class="i" data-ic="plus"></svg></button>
+        <span class="zsep"></span>
+        <button id="zFit" aria-label="Xem toàn bộ" title="Xem toàn bộ (F)"><svg class="i" data-ic="fit"></svg></button>
+      </div>
+    </div>
+
+    <section class="dash" id="dash" aria-label="Dashboard"></section>
+    <div class="empty" id="empty" hidden>
+      <div class="empty-card">
+        <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><use href="#brand"/></svg>
+        <h3>Bắt đầu mạng lưới của bạn</h3>
+        <p>Thêm nhân sự vào khu 1, công việc vào khu 2, rồi nối họ lại với nhau.</p>
+        <div class="row-btns">
+          <button class="btn" data-empty="p"><span class="plus p"><svg class="i" data-ic="plus"></svg></span>Thêm nhân sự</button>
+          <button class="btn" data-empty="t"><span class="plus t"><svg class="i" data-ic="plus"></svg></span>Thêm công việc</button>
+        </div>
+        <button class="lnk" data-empty="s">Hoặc nạp dữ liệu mẫu để xem thử</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="modal" hidden><div class="sheet" id="sheet" tabindex="-1" role="dialog" aria-modal="true" aria-label="Thông tin node"></div></div>
+<div id="toasts" aria-live="polite"></div>
+<div class="dtip" id="dtip" hidden></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= Helpers ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase().trim();
+const short = (s, n = 26) => { s = String(s || ''); return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s; };
+const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const ICON = {
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  more: '<circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
+  edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  trash: '<path d="M3 6h18"/><path d="M8 6V4.5A1.5 1.5 0 0 1 9.5 3h5A1.5 1.5 0 0 1 16 4.5V6"/><path d="m19 6-.8 13.2a2 2 0 0 1-2 1.8H7.8a2 2 0 0 1-2-1.8L5 6"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/>',
+  unlink: '<path d="m18.8 13.2 1.4-1.4a5 5 0 0 0-7.1-7.1l-1.4 1.4"/><path d="m5.2 10.8-1.4 1.4a5 5 0 0 0 7.1 7.1l1.4-1.4"/><path d="M8 2v3M2 8h3M16 22v-3M22 16h-3"/>',
+  fit: '<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  sparkle: '<path d="M12 3.5 13.9 9l5.6 2-5.6 2L12 18.5 10.1 13l-5.6-2 5.6-2Z"/><path d="M19 3v3M17.5 4.5h3"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  task: '<circle cx="12" cy="12" r="9"/><path d="m8 12.2 2.8 2.8L16 9.5"/>',
+  phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7 8.5 6 8.5-6"/>',
+  calendar: '<rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/>',
+  flag: '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
+  folder: '<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.5h7.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5Z"/>',
+  building: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/>',
+  brief: '<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7V5.5A2.5 2.5 0 0 1 11 3h2a2.5 2.5 0 0 1 2.5 2.5V7"/>',
+  note: '<path d="M14 3H6.5A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V9Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+  download: '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
+  upload: '<path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8h.01"/>',
+  alert: '<path d="M12 8.5v4.5M12 16.6h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>',
+  layers: '<path d="m12 2.5 9 5-9 5-9-5Z"/><path d="m3 12.5 9 5 9-5"/><path d="m3 17 9 5 9-5"/>',
+  move: '<path d="M12 2v20M2 12h20"/><path d="m15 5-3-3-3 3M15 19l-3 3-3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/>',
+  hand: '<path d="M9 11V5a1.5 1.5 0 0 1 3 0v5"/><path d="M12 10V4a1.5 1.5 0 0 1 3 0v6"/><path d="M15 10V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-2.7l-2.6-4.1a1.5 1.5 0 0 1 2.4-1.8L6 14V8a1.5 1.5 0 0 1 3 0v3"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  map: '<circle cx="6" cy="7" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="17" cy="18" r="2.6"/><path d="M8.6 6.8 15.4 6.2M8.1 8.9l7 7.3"/>',
+  chart: '<path d="M4 20h16"/><path d="M7.5 16v-5M12 16V6M16.5 16v-8"/>',
+  grid: '<circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/>'
+};
+const ic = (name, extra = '') => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"${extra}>${ICON[name] || ''}</svg>`;
+
+/* ================= Constants ================= */
+const STORE_KEY = 'nodetodo.data.v1', UI_KEY = 'nodetodo.ui.v1';
+const PERSON = '#E5484D', TASK = '#3E63DD', BG = '#F5F6F8', INK = '#1B2030';
+const FONT = '"Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+const PALETTE = ['#F76B15', '#2F9E68', '#8E4EC6', '#E0A100', '#12A594', '#0090FF', '#D6409F', '#A07553', '#5B6B7F', '#7CB342', '#00A2C7', '#C2410C'];
+const NEUTRAL = '#A3A9B6';
+const STATUS = {
+  todo: { label: 'Chưa bắt đầu', color: '#9AA0AD' },
+  doing: { label: 'Đang làm', color: '#3E63DD' },
+  paused: { label: 'Tạm dừng', color: '#D9901A' },
+  done: { label: 'Hoàn thành', color: '#2F9E68' }
+};
+const PRIORITY = {
+  low: { label: 'Thấp', color: '#9AA0AD' },
+  med: { label: 'Trung bình', color: '#3E63DD' },
+  high: { label: 'Cao', color: '#F76B15' },
+  urgent: { label: 'Khẩn cấp', color: '#D9363E' }
+};
+const FIELDS = { person: ['name', 'role', 'dept', 'phone', 'email', 'note'], task: ['name', 'project', 'status', 'progress', 'priority', 'due', 'note'] };
+const KMIN = 0.15, KMAX = 3.2, MARGIN = 26;
+// physics
+const REP = -1100, REP_MAX2 = 460 * 460;
+
+/* ================= Dates ================= */
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return ymd(d); };
+function daysLeft(due) {
+  if (!due || !/^\d{4}-\d{2}-\d{2}$/.test(due)) return null;
+  const [y, m, d] = due.split('-').map(Number);
+  const t = new Date(y, m - 1, d), n = new Date(); n.setHours(0, 0, 0, 0);
+  return Math.round((t - n) / 86400000);
+}
+const fmtDate = due => { const [y, m, d] = due.split('-'); return `${d}/${m}/${y}`; };
+const isOverdue = n => n.type === 'task' && n.status !== 'done' && daysLeft(n.due) !== null && daysLeft(n.due) < 0;
+function dueText(t) {
+  const dl = daysLeft(t.due); if (dl === null) return '';
+  if (t.status === 'done') return 'hạn ' + fmtDate(t.due).slice(0, 5);
+  if (dl < 0) return `quá hạn ${-dl} ngày`;
+  if (dl === 0) return 'hạn hôm nay';
+  if (dl === 1) return 'hạn ngày mai';
+  return `còn ${dl} ngày`;
+}
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+/* ================= State ================= */
+let data = { nodes: [], links: [], groupColors: {} };
+let ui = { physics: true, hintHidden: false, tab: 'map', dashF: { proj: '__all__', dept: '__all__' } };
+const byId = new Map(), adj = new Map(), linkSet = new Set();
+const lk = (p, t) => p + '|' + t;
+let sel = null;            // {kind:'node'|'link', id}
+let hoverNode = null, hoverHandle = false, hoverLink = null;
+let dragNode = null;
+let linkMode = null;       // {from:id}
+let filter = null;         // {kind:'group', type, name} | {kind:'overdue'}
+let modal = { open: false };
+let divGlow = 0;
+const hist = [];
+
+/* ================= DOM ================= */
+const stage = $('#stage'), cv = $('#cv'), ctx = cv.getContext('2d');
+const nodeBar = $('#nodeBar'), linkBar = $('#linkBar');
+const modalEl = $('#modal'), sheet = $('#sheet');
+const zone1 = $('#zone1'), zone2 = $('#zone2');
+$$('svg[data-ic]').forEach(s => { s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); s.innerHTML = ICON[s.dataset.ic] || ''; });
+// reuse brand logo in empty card + favicon
+(() => {
+  const logo = $('#brand .logo');
+  $('#empty .logo').outerHTML = logo.outerHTML.replace(/id="lg(Bg|Ln)"/g, 'id="lg$1e"').replace(/url\(#lg(Bg|Ln)\)/g, 'url(#lg$1e)').replace('class="logo"', 'class="logo"');
+  const fav = document.createElement('link'); fav.rel = 'icon';
+  fav.href = 'data:image/svg+xml,' + encodeURIComponent(logo.outerHTML.replace('<svg class="logo"', '<svg xmlns="http://www.w3.org/2000/svg"'));
+  document.head.append(fav);
+})();
+
+/* ================= Data model ================= */
+function groupName(n) { return ((n.type === 'person' ? n.dept : n.project) || '').trim(); }
+function colorOf(name) {
+  name = (name || '').trim(); if (!name) return NEUTRAL;
+  let c = data.groupColors[name];
+  if (!c) { c = PALETTE[Object.keys(data.groupColors).length % PALETTE.length]; data.groupColors[name] = c; }
+  return c;
+}
+function peekColor(name) {
+  name = (name || '').trim(); if (!name) return NEUTRAL;
+  return data.groupColors[name] || PALETTE[Object.keys(data.groupColors).length % PALETTE.length];
+}
+function radiusFor(n) {
+  const d = n.deg || 0;
+  return n.type === 'person' ? 19 + Math.min(14, 3.4 * Math.sqrt(d)) : 16 + Math.min(11, 3 * Math.sqrt(d));
+}
+function initials(name) {
+  const w = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!w.length) return '?';
+  if (w.length === 1) return w[0].slice(0, 2).toUpperCase();
+  return (w[0][0] + w[w.length - 1][0]).toUpperCase();
+}
+function rebuild() {
+  byId.clear(); adj.clear(); linkSet.clear();
+  for (const n of data.nodes) {
+    byId.set(n.id, n); adj.set(n.id, new Set());
+    if (n.vx == null) { n.vx = 0; n.vy = 0; }
+    if (n.s == null) n.s = 1;
+    if (n.a == null) n.a = 1;
+    colorOf(groupName(n));
+  }
+  const keep = [];
+  for (const l of data.links) {
+    const p = byId.get(l.p), t = byId.get(l.t);
+    if (!p || !t || p.type !== 'person' || t.type !== 'task') continue;
+    const key = lk(l.p, l.t); if (linkSet.has(key)) continue;
+    linkSet.add(key); keep.push(l);
+    adj.get(l.p).add(l.t); adj.get(l.t).add(l.p);
+    if (l.a == null) l.a = 0;
+  }
+  data.links = keep;
+  for (const n of data.nodes) {
+    n.deg = adj.get(n.id).size; n.rt = radiusFor(n);
+    if (n.r == null) n.r = n.rt;
+    // label widths in screen px, measured with the real font (name line, second line)
+    ctx.font = `700 13px ${FONT}`; n.lwN = Math.min(280, ctx.measureText(short(n.name, 30)).width + 16);
+    ctx.font = `500 11.5px ${FONT}`; n.lwS = Math.min(280, ctx.measureText(short(subText(n), 44)).width + 16);
+  }
+  computeZone();
+  if (sel && sel.kind === 'node' && !byId.has(sel.id)) sel = null;
+  if (sel && sel.kind === 'link' && !data.links.some(l => l.id === sel.id)) sel = null;
+  if (hoverNode && !byId.has(hoverNode.id)) hoverNode = null;
+  if (hoverLink && !data.links.includes(hoverLink)) hoverLink = null;
+  if (linkMode && !byId.has(linkMode.from)) exitLinkMode();
+  updateCounts(); updateBarsContent(); renderLegend(); renderFilterPill();
+  if (typeof scheduleDash === 'function') scheduleDash();
+  dirty();
+}
+function clampZone(n) {
+  const lim = (n.r || 16) + MARGIN;
+  if (n.type === 'person' && n.x > -lim) { n.x = -lim; if (n.vx > 0) n.vx = 0; return true; }
+  if (n.type === 'task' && n.x < lim) { n.x = lim; if (n.vx < 0) n.vx = 0; return true; }
+  return false;
+}
+
+/* ---------- serialize / normalize ---------- */
+function cleanNode(n) {
+  const o = { id: n.id, type: n.type, x: Math.round(n.x * 10) / 10, y: Math.round(n.y * 10) / 10, createdAt: n.createdAt, updatedAt: n.updatedAt };
+  for (const f of FIELDS[n.type]) o[f] = n[f];
+  if (n.pin) o.pin = 1;
+  return o;
+}
+function serialize() {
+  return { app: 'nodetodo', version: 1, layoutV: 3, savedAt: new Date().toISOString(), nodes: data.nodes.map(cleanNode), links: data.links.map(l => ({ id: l.id, p: l.p, t: l.t })), groupColors: { ...data.groupColors } };
+}
+const str = (v, max) => typeof v === 'string' ? v.slice(0, max) : (typeof v === 'number' ? String(v).slice(0, max) : '');
+function normalize(raw) {
+  if (!raw || typeof raw !== 'object' || !Array.isArray(raw.nodes) || !Array.isArray(raw.links)) throw new Error('File không đúng định dạng nodetodo');
+  const out = { nodes: [], links: [], groupColors: {}, layoutV: raw.layoutV | 0 };
+  const ids = new Set();
+  for (const r of raw.nodes) {
+    if (!r || (r.type !== 'person' && r.type !== 'task')) continue;
+    let id = str(r.id, 40) || uid(); if (ids.has(id)) id = uid(); ids.add(id);
+    const n = { id, type: r.type };
+    n.name = str(r.name, 140).trim() || (r.type === 'person' ? 'Nhân sự chưa đặt tên' : 'Công việc chưa đặt tên');
+    n.note = str(r.note, 4000);
+    if (r.type === 'person') {
+      n.role = str(r.role, 120); n.dept = str(r.dept, 80); n.phone = str(r.phone, 40); n.email = str(r.email, 120);
+    } else {
+      n.project = str(r.project, 80);
+      n.status = STATUS[r.status] ? r.status : 'todo';
+      n.progress = clamp(Math.round(Number(r.progress) || 0), 0, 100);
+      n.priority = PRIORITY[r.priority] ? r.priority : 'med';
+      n.due = /^\d{4}-\d{2}-\d{2}$/.test(r.due || '') ? r.due : '';
+    }
+    n.x = Number.isFinite(+r.x) && r.x !== null && r.x !== '' ? +r.x : null;
+    n.y = Number.isFinite(+r.y) && r.y !== null && r.y !== '' ? +r.y : null;
+    n.pin = !!r.pin;
+    n.createdAt = str(r.createdAt, 40) || new Date().toISOString();
+    n.updatedAt = str(r.updatedAt, 40) || n.createdAt;
+    out.nodes.push(n);
+  }
+  for (const l of raw.links) {
+    if (!l) continue;
+    const p = str(l.p, 40), t = str(l.t, 40);
+    if (!ids.has(p) || !ids.has(t)) continue;
+    out.links.push({ id: str(l.id, 40) || uid(), p, t });
+  }
+  if (raw.groupColors && typeof raw.groupColors === 'object') {
+    for (const [k, v] of Object.entries(raw.groupColors)) if (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v)) out.groupColors[k.slice(0, 80)] = v;
+  }
+  // place nodes missing coordinates
+  let pi = 0, ti = 0;
+  for (const n of out.nodes) {
+    if (n.x == null || n.y == null) {
+      if (n.type === 'person') { n.x = -260 - Math.random() * 180; n.y = (pi++) * 70 - 200; }
+      else { n.x = 260 + Math.random() * 180; n.y = (ti++) * 52 - 260; }
+    }
+  }
+  return out;
+}
+
+/* ---------- persistence ---------- */
+let saveT = 0;
+function scheduleSave() { clearTimeout(saveT); saveT = setTimeout(saveNow, 400); }
+function saveNow() { clearTimeout(saveT); try { localStorage.setItem(STORE_KEY, JSON.stringify(serialize())); } catch (e) { } }
+function saveUI() { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (e) { } }
+function loadUI() {
+  try { const s = localStorage.getItem(UI_KEY); if (s) Object.assign(ui, JSON.parse(s)); } catch (e) { }
+  if (ui.tab !== 'dash') ui.tab = 'map';
+  if (!ui.dashF || typeof ui.dashF !== 'object') ui.dashF = {};
+  for (const k of ['proj', 'dept']) if (typeof ui.dashF[k] !== 'string') ui.dashF[k] = '__all__';
+}
+function loadData() {
+  try { const s = localStorage.getItem(STORE_KEY); if (s) { data = normalize(JSON.parse(s)); return true; } } catch (e) { }
+  return false;
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) saveNow(); });
+window.addEventListener('pagehide', saveNow);
+
+/* ---------- history ---------- */
+function snapshot() { hist.push(JSON.stringify(serialize())); if (hist.length > 50) hist.shift(); }
+function undo() {
+  const s = hist.pop();
+  if (!s) { toast('Chưa có thao tác nào để hoàn tác', { plain: true }); return; }
+  const posMap = new Map(data.nodes.map(n => [n.id, n]));
+  data = normalize(JSON.parse(s));
+  for (const n of data.nodes) { const old = posMap.get(n.id); if (old) { n.vx = 0; n.vy = 0; } else { n.s = 0.01; } }
+  if (modal.open) closeModal();
+  rebuild(); reheat(0.2); scheduleSave();
+  $('#toasts').innerHTML = '';
+  toast('Đã hoàn tác', { plain: true, dur: 2000 });
+}
+
+/* ================= Sample data ================= */
+function sampleData() {
+  const P = [
+    ['Nguyễn Văn An', 'Trưởng phòng Kinh doanh', 'Kinh doanh', '0903 112 233', 'an.nguyen@congty.vn'],
+    ['Trần Thị Bích', 'Chuyên viên kinh doanh', 'Kinh doanh', '0912 245 678', 'bich.tran@congty.vn'],
+    ['Lê Minh Châu', 'Lập trình viên', 'Kỹ thuật', '0938 556 120', 'chau.le@congty.vn'],
+    ['Phạm Quốc Dũng', 'Trưởng nhóm kỹ thuật', 'Kỹ thuật', '0977 330 451', 'dung.pham@congty.vn'],
+    ['Hoàng Thu Hà', 'Kỹ sư kiểm thử', 'Kỹ thuật', '0909 871 002', 'ha.hoang@congty.vn'],
+    ['Vũ Ngọc Hân', 'Thiết kế UI/UX', 'Thiết kế', '0868 214 900', 'han.vu@congty.vn'],
+    ['Đặng Gia Khang', 'Thiết kế đồ họa', 'Thiết kế', '0933 678 145', 'khang.dang@congty.vn'],
+    ['Bùi Thanh Lam', 'Chuyên viên marketing', 'Marketing', '0919 402 377', 'lam.bui@congty.vn'],
+    ['Đỗ Hải Long', 'Sáng tạo nội dung', 'Marketing', '0988 120 654', 'long.do@congty.vn'],
+    ['Ngô Phương Mai', 'Kế toán trưởng', 'Kế toán', '0907 765 432', 'mai.ngo@congty.vn'],
+    ['Dương Tuấn Nam', 'Kế toán viên', 'Kế toán', '0936 098 211', 'nam.duong@congty.vn'],
+    ['Lý Khánh Linh', 'Điều phối dự án', 'Vận hành', '0945 333 818', 'linh.ly@congty.vn']
+  ];
+  const T = [
+    ['Thiết kế giao diện trang chủ', 'Website mới', 'doing', 60, 'high', 4, ['Hân', 'Khang'], ''],
+    ['Lập trình trang sản phẩm', 'Website mới', 'doing', 35, 'med', 9, ['Châu', 'Dũng'], ''],
+    ['Kiểm thử trên điện thoại', 'Website mới', 'todo', 0, 'med', 14, ['Hà'], ''],
+    ['Viết nội dung giới thiệu', 'Website mới', 'doing', 50, 'high', -2, ['Long', 'Lam'], 'Cần duyệt nội dung trước khi đăng.'],
+    ['Tối ưu tốc độ tải trang', 'Website mới', 'todo', 0, 'low', 18, ['Dũng'], ''],
+    ['Lên ý tưởng chiến dịch', 'Chiến dịch Tết', 'done', 100, 'high', -6, ['Lam', 'Bích', 'An'], ''],
+    ['Quay video TikTok', 'Chiến dịch Tết', 'doing', 20, 'high', 6, ['Long', 'Khang'], ''],
+    ['Thiết kế bộ nhận diện Tết', 'Chiến dịch Tết', 'doing', 70, 'urgent', 3, ['Khang', 'Hân'], 'Ưu tiên bản cho mạng xã hội trước.'],
+    ['Chạy quảng cáo Facebook', 'Chiến dịch Tết', 'todo', 0, 'med', 20, ['Lam'], ''],
+    ['Khuyến mãi cho đại lý', 'Chiến dịch Tết', 'doing', 40, 'high', -1, ['An', 'Bích'], ''],
+    ['Tổng hợp doanh số các miền', 'Báo cáo quý IV', 'doing', 55, 'urgent', 2, ['Bích', 'Nam'], ''],
+    ['Đối soát công nợ', 'Báo cáo quý IV', 'doing', 30, 'high', -3, ['Nam', 'Mai'], 'Chờ số liệu từ miền Trung.'],
+    ['Lập báo cáo tài chính', 'Báo cáo quý IV', 'todo', 0, 'med', 25, ['Mai'], ''],
+    ['Trình bày với ban giám đốc', 'Báo cáo quý IV', 'todo', 0, 'high', 28, ['An', 'Mai'], ''],
+    ['Khảo sát mặt bằng', 'Showroom mới', 'done', 100, 'med', -10, ['Linh', 'An'], ''],
+    ['Dự toán chi phí thi công', 'Showroom mới', 'doing', 45, 'high', 5, ['Linh', 'Mai'], ''],
+    ['Bố trí trưng bày sản phẩm', 'Showroom mới', 'todo', 0, 'low', 30, ['Hân', 'Linh'], ''],
+    ['Phân tích yêu cầu', 'App nội bộ', 'done', 100, 'med', -8, ['Dũng', 'Linh'], ''],
+    ['Xây dựng API chấm công', 'App nội bộ', 'doing', 25, 'med', 12, ['Châu'], ''],
+    ['Thiết kế màn hình đăng nhập', 'App nội bộ', 'paused', 10, 'low', 15, ['Hân'], 'Tạm dừng chờ chốt quy trình đăng nhập.'],
+    ['Kiểm thử bảo mật', 'App nội bộ', 'todo', 0, 'high', 21, ['Hà', 'Dũng'], ''],
+    ['Viết tài liệu hướng dẫn', 'App nội bộ', 'todo', 0, 'low', 35, ['Hà', 'Linh'], '']
+  ];
+  const now = new Date().toISOString();
+  const nodes = [], links = [], byGiven = {};
+  P.forEach((p, i) => {
+    const id = 'p' + (i + 1); byGiven[p[0].split(' ').pop()] = id;
+    nodes.push({ id, type: 'person', name: p[0], role: p[1], dept: p[2], phone: p[3], email: p[4], note: '', x: -300 - Math.random() * 160, y: (i - P.length / 2) * 64, createdAt: now, updatedAt: now });
+  });
+  T.forEach((t, i) => {
+    const id = 't' + (i + 1);
+    nodes.push({ id, type: 'task', name: t[0], project: t[1], status: t[2], progress: t[3], priority: t[4], due: addDays(t[5]), note: t[7], x: 300 + Math.random() * 160, y: (i - T.length / 2) * 42, createdAt: now, updatedAt: now });
+    for (const g of t[6]) links.push({ id: uid(), p: byGiven[g], t: id });
+  });
+  return { nodes, links, groupColors: {} };
+}
+
+/* ================= Canvas & camera ================= */
+let cw = 0, ch = 0, dpr = 1;
+const cam = { x: 0, y: 0, k: 1 }, goal = { x: 0, y: 0, k: 1 };
+let camAnim = null, zoomAnchor = null;
+let needs = true; const dirty = () => { needs = true; };
+
+function resize() {
+  const r = stage.getBoundingClientRect();
+  const oW = cw, oH = ch;
+  cw = Math.max(1, r.width); ch = Math.max(1, r.height);
+  dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  cv.width = Math.round(cw * dpr); cv.height = Math.round(ch * dpr);
+  cam.x = goal.x = cw / 2;
+  if (oW) { cam.y += (ch - oH) / 2; goal.y = cam.y; }
+  computeZone();
+  if (oW && cw >= 760 && (cw !== oW || ch !== oH) && data.nodes.length) fitView(false);
+  draw(performance.now());
+}
+new ResizeObserver(resize).observe(stage);
+
+const toWorld = p => ({ x: (p.x - cam.x) / cam.k, y: (p.y - cam.y) / cam.k });
+const toScreen = (x, y) => ({ x: x * cam.k + cam.x, y: y * cam.k + cam.y });
+function localPt(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+
+function animateTo(wx, wy, k, dur = 620) {
+  k = clamp(k, KMIN, KMAX); zoomAnchor = null;
+  if (reduceMotion) dur = 1;
+  camAnim = { from: { cx: (cw / 2 - cam.x) / cam.k, cy: (ch / 2 - cam.y) / cam.k, k: cam.k }, to: { cx: wx, cy: wy, k }, t0: performance.now(), dur };
+  dirty();
+}
+function stepCam(now) {
+  const a = camAnim, p = clamp((now - a.t0) / a.dur, 0, 1), e = easeIO(p);
+  const k = Math.exp(lerp(Math.log(a.from.k), Math.log(a.to.k), e));
+  const cx = lerp(a.from.cx, a.to.cx, e), cy = lerp(a.from.cy, a.to.cy, e);
+  cam.k = k; cam.x = cw / 2 - cx * k; cam.y = ch / 2 - cy * k;
+  goal.x = cam.x; goal.y = cam.y; goal.k = cam.k;
+  if (p >= 1) camAnim = null;
+}
+function zoomAt(p, factor) {
+  camAnim = null;
+  zoomAnchor = { sx: p.x, sy: p.y, wx: (p.x - cam.x) / cam.k, wy: (p.y - cam.y) / cam.k };
+  goal.k = clamp(goal.k * factor, KMIN, KMAX);
+  dirty();
+}
+/* ---------- fit: the red divider stays fixed in the middle of the screen ---------- */
+const PAD_TOP = 64, EDGE = 22;
+const padBot = () => cw < 760 ? 92 : 74;
+// label width (screen px) a node needs beside it; the second line only shows when zoomed in
+const labPx = n => zone.k >= 0.78 ? Math.max(n.lwN || 140, n.lwS || 0) : (n.lwN || 140);
+function computeFit() {
+  if (!data.nodes.length) return { cx: 0, cy: 0, k: 1 };
+  const pb = padBot(), visH = ch - PAD_TOP - pb;
+  let y0 = Infinity, y1 = -Infinity, k;
+  for (const n of data.nodes) { const r = n.rt || n.r || 16; y0 = Math.min(y0, n.y - r - 6); y1 = Math.max(y1, n.y + r + 22); }
+  if (cw < 760) {
+    // phone: fit the width, keep names readable, scroll vertically
+    let mx = 1; for (const n of data.nodes) mx = Math.max(mx, Math.abs(n.x) + (n.r || 16));
+    k = clamp((cw / 2 - 92) / mx, 0.45, 1.1);
+  } else {
+    // widest node + name on either side must fit inside its half of the screen
+    let kx = 1.2;
+    for (const n of data.nodes) kx = Math.min(kx, (cw / 2 - EDGE - labPx(n) - 10) / Math.max(1, Math.abs(n.x) + (n.rt || n.r || 16)));
+    k = clamp(Math.min(kx, visH / Math.max(1, y1 - y0), 1.2), KMIN, 1.2);
+  }
+  const cy = (y1 - y0) * k <= visH ? (y0 + y1) / 2 - (PAD_TOP - pb) / 2 / k : y0 + (ch / 2 - PAD_TOP) / k;
+  return { cx: 0, cy, k };
+}
+function fitView(animate = true) { const f = computeFit(); animate ? animateTo(0, f.cy, f.k) : setCamCenter(0, f.cy, f.k); }
+function setCamCenter(cx, cy, k) { cam.k = goal.k = k; cam.x = goal.x = cw / 2; cam.y = goal.y = ch / 2 - cy * k; dirty(); }
+function focusNode(n, minK = 1) {
+  // the divider never moves, so zoom only as far as keeps this node and its name on screen
+  const kVis = (cw / 2 - EDGE - labPx(n) - 10) / Math.max(1, Math.abs(n.x) + n.r);
+  animateTo(0, n.y, clamp(Math.min(Math.max(cam.k, minK), kVis), KMIN, KMAX));
+}
+
+/* ================= Layout & physics ================= */
+// Each zone is one half of the screen. Nodes spread from the divider out to the screen
+// edge and from top to bottom; every node has its own row so names never collide.
+const GAP_IN = 84;                     // calm strip on both sides of the divider (world units)
+const LANE = 38;                       // minimum row height per node (world units)
+const zone = { W: 600, H: 500, k: 0.8 };
+let layoutAnim = null;
+function computeZone() {
+  if (!cw) return;
+  const narrow = cw < 760;
+  let np = 0, nt = 0;
+  for (const n of data.nodes) n.type === 'person' ? np++ : nt++;
+  const need = Math.max(np, nt, 1) * LANE + 60;
+  const visH = ch - PAD_TOP - padBot() - 30;
+  if (narrow) { zone.k = 0.55; zone.H = Math.max(need, visH / zone.k); }
+  else { zone.k = clamp(visH / need, 0.34, 1.05); zone.H = visH / zone.k; }      // fill the screen height
+  zone.W = Math.max(160, (cw / 2 - EDGE) / zone.k - GAP_IN);                    // fill the half screen, names included
+}
+const sim = { alpha: 0, alphaTarget: 0, alphaMin: 0.004, decay: 0.0228 };
+function reheat(a = 0.4) { if (!ui.physics || layoutAnim) return; sim.alpha = Math.max(sim.alpha, Math.min(a, 0.1)); dirty(); }
+const still = a => a.fixed || a.pin;   // being dragged, or dropped by hand: stays exactly there
+function tick() {
+  const N = data.nodes, n = N.length;
+  if (!n) { sim.alpha = 0; return; }
+  sim.alpha += (sim.alphaTarget - sim.alpha) * sim.decay;
+  const A = sim.alpha, kk = zone.k;
+  // links only pull vertically: connected people and tasks line up without crowding the divider
+  for (const l of data.links) {
+    const s = byId.get(l.p), t = byId.get(l.t), dy = t.y - s.y;
+    s.vy += dy * 0.022 * A / (s.deg || 1); t.vy -= dy * 0.022 * A / (t.deg || 1);
+  }
+  const cent = new Map();
+  for (const a of N) {
+    const key = a.type + '|' + groupName(a); let c = cent.get(key);
+    if (!c) { c = { y: 0, n: 0 }; cent.set(key, c); }
+    c.y += a.y; c.n++;
+  }
+  // label-aware boxes: names never touch, nodes never crowd
+  const hl = zone.k >= 0.78 ? 24 : 15;
+  for (const a of N) {
+    const hh = Math.max(a.r + 6 / kk, hl / kk), lw = labPx(a) / kk;
+    a.by0 = a.y - hh; a.by1 = a.y + hh;
+    if (a.type === 'person') { a.bx0 = a.x - a.r - lw - 6 / kk; a.bx1 = a.x + a.r + 10 / kk; }
+    else { a.bx0 = a.x - a.r - 10 / kk; a.bx1 = a.x + a.r + lw + 6 / kk; }
+  }
+  for (let i = 0; i < n; i++) {
+    const a = N[i];
+    for (let j = i + 1; j < n; j++) {
+      const b = N[j];
+      const ma = !still(a), mb = !still(b);
+      if (a.type === b.type && (ma || mb)) {
+        const wa = ma && mb ? 0.5 : ma ? 1 : 0, wb = ma && mb ? 0.5 : mb ? 1 : 0;
+        // a node further out sends its lines towards the divider, right past nodes that sit
+        // closer in: keep those lines out of their circle ("line corridor")
+        const da = Math.abs(a.x), db = Math.abs(b.x);
+        if (Math.abs(da - db) > 24) {
+          const [o, inn, wo, wi] = da > db ? [a, b, wa, wb] : [b, a, wb, wa];
+          if (o.deg) {
+            const need = Math.max(inn.r, 8 / kk) + 8, dyy = o.y - inn.y;
+            if (Math.abs(dyy) < need) {
+              const s = dyy > 0 || (dyy === 0 && (i & 1)) ? 1 : -1, c = (need - Math.abs(dyy)) * 0.3;
+              o.y += s * c * wo * 2; inn.y -= s * c * wi * 2;
+            }
+          }
+        }
+        const ox = Math.min(a.bx1, b.bx1) - Math.max(a.bx0, b.bx0);
+        const oy = Math.min(a.by1, b.by1) - Math.max(a.by0, b.by0);
+        if (ox > 0 && oy > 0) {
+          if (oy < ox * 1.3) {
+            const s = a.y < b.y || (a.y === b.y && (i & 1)) ? 1 : -1, c = oy * 0.36;
+            a.y -= s * c * wa * 2; b.y += s * c * wb * 2;
+            a.by0 -= s * c * wa * 2; a.by1 -= s * c * wa * 2; b.by0 += s * c * wb * 2; b.by1 += s * c * wb * 2;
+          } else {
+            const s = a.x < b.x ? 1 : -1, c = ox * 0.22;
+            a.x -= s * c * wa * 2; b.x += s * c * wb * 2;
+            a.bx0 -= s * c * wa * 2; a.bx1 -= s * c * wa * 2; b.bx0 += s * c * wb * 2; b.bx1 += s * c * wb * 2;
+          }
+        }
+      }
+      let dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy;
+      if (d2 > REP_MAX2) continue;
+      if (d2 < 1) { dx = Math.random() - .5; dy = Math.random() - .5; d2 = dx * dx + dy * dy + .01; }
+      const w = REP * A / d2;
+      a.vx += dx * w; a.vy += dy * w; b.vx -= dx * w; b.vy -= dy * w;
+    }
+  }
+  for (const a of N) {
+    const g = groupName(a);
+    if (g) { const c = cent.get(a.type + '|' + g); if (c.n > 1) a.vy += (c.y / c.n - a.y) * 0.02 * A; }
+    const sg = a.type === 'person' ? -1 : 1;
+    a.vx += (sg * (GAP_IN + zone.W / 2) - a.x) * 0.002 * A;
+    // soft walls: half of the screen, from the divider strip out to the screen edge (name included)
+    const lw = labPx(a) / kk, d = Math.abs(a.x), ymax = zone.H / 2 - a.r - 4;
+    let dmin = GAP_IN + a.r, dmax = GAP_IN + zone.W - lw - a.r;
+    if (dmax < dmin) dmax = dmin;
+    if (d < dmin) a.vx += sg * (dmin - d) * 0.35 * A; else if (d > dmax) a.vx -= sg * (d - dmax) * 0.35 * A;
+    if (a.y < -ymax) a.vy += (-ymax - a.y) * 0.35 * A; else if (a.y > ymax) a.vy += (ymax - a.y) * 0.35 * A;
+  }
+  for (const a of N) {
+    if (still(a)) { a.vx = a.vy = 0; continue; }
+    a.vx *= 0.56; a.vy *= 0.56;
+    const sp = Math.hypot(a.vx, a.vy); if (sp > 40) { a.vx *= 40 / sp; a.vy *= 40 / sp; }
+    a.x += a.vx; a.y += a.vy;
+    clampZone(a);
+  }
+  if (sim.alpha < sim.alphaMin && sim.alphaTarget === 0) { sim.alpha = 0; scheduleSave(); }
+}
+// seed: one row per node from top to bottom, columns spread out to the screen edge.
+// Rows take the columns in a scattered order so neighbours never sit in the same column.
+const PERM = { 1: [0], 2: [0, 1], 3: [0, 2, 1], 4: [0, 2, 1, 3], 5: [0, 3, 1, 4, 2], 6: [0, 3, 1, 4, 2, 5] };
+function seedGrid() {
+  const kk = zone.k;
+  for (const type of ['person', 'task']) {
+    const arr = data.nodes.filter(n => n.type === type);
+    if (!arr.length) continue;
+    const meanY = ns => { let s = 0, c = 0; for (const n of ns) for (const id of adj.get(n.id)) { const o = byId.get(id); if (o && o.type === 'person') { s += o.y; c++; } } return c ? s / c : 0; };
+    const groups = new Map();
+    for (const n of arr) { const g = groupName(n); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(n); }
+    const order = [...groups.entries()];
+    if (type === 'task') order.sort((a, b) => meanY(a[1]) - meanY(b[1]));
+    else order.sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0], 'vi'));
+    const list = order.flatMap(([, ns]) => ns.sort((a, b) => (type === 'task' ? meanY([a]) - meanY([b]) : b.deg - a.deg) || a.name.localeCompare(b.name, 'vi')));
+    const m = list.length, sg = type === 'person' ? -1 : 1;
+    let lab = 0, rmax = 0;
+    for (const n of list) { lab += labPx(n) / kk; rmax = Math.max(rmax, n.rt); }
+    lab /= m;
+    const span = Math.max(0, zone.W - lab - 2 * rmax - 12 / kk);          // room for node centres, inner -> outer
+    const cols = clamp(Math.floor(span / (lab + 2 * rmax + 40 / kk)) + 1, 1, Math.min(6, m));
+    const colW = cols > 1 ? span / (cols - 1) : 0;
+    const top = -zone.H / 2 + rmax + 6, stepY = m > 1 ? (zone.H - 2 * rmax - 12) / (m - 1) : 0;
+    list.forEach((n, i) => {
+      let d = GAP_IN + n.rt + 4 + PERM[cols][i % cols] * colW;
+      d = Math.max(GAP_IN + n.rt, Math.min(d, GAP_IN + zone.W - labPx(n) / kk - n.rt));
+      n.x = sg * d;
+      n.y = m > 1 ? top + i * stepY : 0;
+      n.vx = n.vy = 0;
+    });
+  }
+}
+function settle() {
+  sim.alphaTarget = 0; sim.alpha = 0.5;
+  for (let i = 0; i < 240; i++) tick();
+  sim.alpha = 0;
+  for (const n of data.nodes) { n.vx = n.vy = 0; }
+}
+// spread everything evenly again (button "Dàn đều"), animated from current positions
+function relayout(animate = true) {
+  if (!data.nodes.length) return;
+  for (const n of data.nodes) { n.r = n.rt; n.fixed = false; n.pin = false; n.lx1 = null; }
+  computeZone();
+  const from = data.nodes.map(n => [n, n.x, n.y]);
+  seedGrid(); settle();
+  if (animate && !reduceMotion) {
+    fitView(true);
+    for (const [n, x, y] of from) { n.lx0 = x; n.ly0 = y; n.lx1 = n.x; n.ly1 = n.y; n.x = x; n.y = y; }
+    layoutAnim = { t0: performance.now(), dur: 850 };
+  } else fitView(false);
+  scheduleSave(); dirty();
+}
+function findFreeSpot(type, near) {
+  const kk = zone.k, sg = type === 'person' ? -1 : 1, hh = Math.max(24 + 6 / kk, 15 / kk);
+  const boxOf = (x, y, lw, r) => type === 'person' ? [x - r - lw - 6 / kk, x + r + 10 / kk, y - hh, y + hh] : [x - r - 10 / kk, x + r + lw + 6 / kk, y - hh, y + hh];
+  const same = data.nodes.filter(n => n.type === type).map(m => boxOf(m.x, m.y, labPx(m) / kk, m.r || 18));
+  const lw = 150 / kk, dmax = GAP_IN + zone.W - lw - 20;
+  const nx = sg * clamp(Math.abs(near.x), GAP_IN + 24, Math.max(GAP_IN + 24, dmax));
+  const sx = Math.max(20, (dmax - GAP_IN) / 30), sy = 12 / kk;
+  let best = null, bd = Infinity;
+  for (let i = 0; i <= 30; i++) for (let j = -30; j <= 30; j++) {
+    const x = sg * Math.min(GAP_IN + 24 + i * sx, Math.max(GAP_IN + 24, dmax)), y = near.y + j * sy;
+    const b = boxOf(x, y, lw, 20);
+    if (same.some(m => b[0] < m[1] && b[1] > m[0] && b[2] < m[3] && b[3] > m[2])) continue;
+    const d = (x - nx) ** 2 + (y - near.y) ** 2;
+    if (d < bd) { bd = d; best = { x, y }; }
+  }
+  return best || { x: sg * (GAP_IN + 40), y: near.y };
+}
+
+/* ================= Geometry & hit testing ================= */
+function bezPts(x1, y1, x2, y2) {
+  const c = Math.max(40, Math.abs(x2 - x1) * 0.48) * Math.sign(x2 - x1 || 1);
+  return [x1, y1, x1 + c, y1, x2 - c, y2, x2, y2];
+}
+function bezAt(b, t) {
+  const u = 1 - t;
+  return { x: u * u * u * b[0] + 3 * u * u * t * b[2] + 3 * u * t * t * b[4] + t * t * t * b[6], y: u * u * u * b[1] + 3 * u * u * t * b[3] + 3 * u * t * t * b[5] + t * t * t * b[7] };
+}
+function linkBez(l) { const p = byId.get(l.p), t = byId.get(l.t); return bezPts(p.x, p.y, t.x, t.y); }
+function nodeAt(wx, wy, tol) {
+  let best = null, bd = Infinity;
+  for (let i = data.nodes.length - 1; i >= 0; i--) {
+    const n = data.nodes[i]; const r = n.r * n.s + tol;
+    const d = (wx - n.x) ** 2 + (wy - n.y) ** 2;
+    if (d <= r * r && d < bd) { best = n; bd = d; }
+  }
+  return best;
+}
+function distSeg(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy;
+  let t = l2 ? ((px - ax) * dx + (py - ay) * dy) / l2 : 0; t = clamp(t, 0, 1);
+  return Math.hypot(px - ax - t * dx, py - ay - t * dy);
+}
+function linkAt(wx, wy, tol) {
+  let best = null, bd = tol;
+  for (const l of data.links) {
+    const p = byId.get(l.p), t = byId.get(l.t);
+    if (wx < Math.min(p.x, t.x) - tol || wx > Math.max(p.x, t.x) + tol || wy < Math.min(p.y, t.y) - 60 || wy > Math.max(p.y, t.y) + 60) continue;
+    const b = linkBez(l); let prev = bezAt(b, 0);
+    for (let i = 1; i <= 20; i++) {
+      const q = bezAt(b, i / 20); const d = distSeg(wx, wy, prev.x, prev.y, q.x, q.y);
+      if (d < bd) { bd = d; best = l; } prev = q;
+    }
+  }
+  return best;
+}
+function handlePos(n) { const off = n.r * n.s + 13 / cam.k; return n.type === 'person' ? { x: n.x + off, y: n.y } : { x: n.x - off, y: n.y }; }
+function hitHandle(n, w, ptype) {
+  const h = handlePos(n), rr = (ptype === 'mouse' ? 11 : 20) / cam.k;
+  return (w.x - h.x) ** 2 + (w.y - h.y) ** 2 <= rr * rr;
+}
+function selNode() { return sel && sel.kind === 'node' ? byId.get(sel.id) : null; }
+function selLink() { return sel && sel.kind === 'link' ? data.links.find(l => l.id === sel.id) : null; }
+let gesture = null;
+function handleNode() {
+  if (gesture && gesture.kind === 'link') return gesture.from;
+  if (linkMode || dragNode || modal.open) return null;
+  if (gesture && (gesture.kind === 'pan' || gesture.kind === 'pinch')) return null;
+  return hoverNode || selNode();
+}
+function focusNode_() {
+  if (gesture && gesture.kind === 'link') return gesture.from;
+  if (linkMode) return byId.get(linkMode.from) || null;
+  if (dragNode) return dragNode;
+  if (hoverNode) return hoverNode;
+  return selNode();
+}
+function matchFilter(n) {
+  if (!filter) return true;
+  if (filter.kind === 'group') return n.type === filter.type && groupName(n) === filter.name;
+  if (filter.kind === 'overdue') {
+    if (n.type === 'task') return isOverdue(n);
+    for (const id of adj.get(n.id) || []) if (isOverdue(byId.get(id))) return true;
+    return false;
+  }
+  return true;
+}
+
+/* ================= Rendering ================= */
+let lastAmb = 0, ambient = false, lastPct = '';
+function drawGrid(W, H) {
+  let s = 32 * cam.k; while (s < 16) s *= 2; while (s > 64) s /= 2;
+  const ox = ((cam.x % s) + s) % s, oy = ((cam.y % s) + s) % s;
+  ctx.fillStyle = 'rgba(30,40,70,0.085)';
+  ctx.beginPath();
+  for (let x = ox; x < W; x += s) for (let y = oy; y < H; y += s) ctx.rect(x - .7, y - .7, 1.4, 1.4);
+  ctx.fill();
+}
+function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0.1, r), 0, Math.PI * 2); }
+function subText(n) {
+  if (n.type === 'person') return [n.role, `${n.deg || 0} việc`].filter(Boolean).join(', ');
+  const dt = dueText(n);
+  if (isOverdue(n)) return cap(dt) + `, ${n.progress}%`;
+  return (STATUS[n.status].label + (n.status === 'done' ? '' : ' ' + n.progress + '%')) + (dt ? ', ' + dt : '');
+}
+function fitText(s, max) {
+  if (ctx.measureText(s).width <= max) return s;
+  let lo = 0, hi = s.length;
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (ctx.measureText(s.slice(0, m) + '…').width <= max) lo = m; else hi = m - 1; }
+  return lo ? s.slice(0, lo).trimEnd() + '…' : '';
+}
+
+function draw(now) {
+  if (!cw) return false;
+  const W = cw, H = ch, k = cam.k;
+  let moving = false; ambient = false;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+  const dx = cam.x, cdx = clamp(dx, 0, W);
+  if (cdx > 0) { ctx.fillStyle = 'rgba(229,72,77,0.032)'; ctx.fillRect(0, 0, cdx, H); }
+  if (cdx < W) { ctx.fillStyle = 'rgba(62,99,221,0.038)'; ctx.fillRect(cdx, 0, W - cdx, H); }
+  drawGrid(W, H);
+  if (dx > -40 && dx < W + 40) {
+    if (divGlow > 0) {
+      const gw = 30, g = ctx.createLinearGradient(dx - gw, 0, dx + gw, 0);
+      g.addColorStop(0, 'rgba(229,72,77,0)'); g.addColorStop(.5, `rgba(229,72,77,${0.3 * divGlow})`); g.addColorStop(1, 'rgba(229,72,77,0)');
+      ctx.fillStyle = g; ctx.fillRect(dx - gw, 0, gw * 2, H);
+    }
+    ctx.fillStyle = PERSON; ctx.globalAlpha = 0.72 + 0.28 * divGlow;
+    ctx.fillRect(Math.round(dx) - 1, 0, 2 + divGlow * 1.5, H);
+    ctx.globalAlpha = 1;
+  }
+
+  // ----- world -----
+  ctx.setTransform(dpr * k, 0, 0, dpr * k, dpr * cam.x, dpr * cam.y);
+  const vx0 = -cam.x / k - 220 / k, vy0 = -cam.y / k - 80 / k, vx1 = (W - cam.x) / k + 220 / k, vy1 = (H - cam.y) / k + 80 / k;
+  const f = focusNode_(), nb = f ? adj.get(f.id) : null;
+  const sl = selLink();
+  const linkCtx = (gesture && gesture.kind === 'link') ? gesture.from : (linkMode ? byId.get(linkMode.from) : null);
+  const lt = gesture && gesture.kind === 'link' ? gesture.target : null;
+
+  // node animation targets
+  for (const n of data.nodes) {
+    let ta = 1;
+    if (linkCtx) ta = (n === linkCtx || n.type !== linkCtx.type) ? 1 : 0.2;
+    else if (f) ta = (n === f || nb.has(n.id)) ? 1 : 0.16;
+    else if (sl) ta = (n.id === sl.p || n.id === sl.t) ? 1 : 0.22;
+    if (filter && !matchFilter(n) && !(f && (n === f || nb.has(n.id)))) ta = Math.min(ta, 0.13);
+    n.ta = ta;
+    const ts = (n === f && !linkCtx) || n === lt ? 1.1 : 1;
+    if (Math.abs(n.a - ta) > 0.004) { n.a += (ta - n.a) * 0.22; moving = true; } else n.a = ta;
+    if (Math.abs(n.s - ts) > 0.003) { n.s += (ts - n.s) * 0.22; moving = true; } else n.s = ts;
+    if (Math.abs(n.r - n.rt) > 0.05) { n.r += (n.rt - n.r) * 0.2; moving = true; } else n.r = n.rt;
+  }
+
+  // links
+  ctx.lineCap = 'round';
+  const hl = [];
+  const baseW = Math.max(1.15, 1.5 * k) / k;
+  for (const l of data.links) {
+    const p = byId.get(l.p), t = byId.get(l.t);
+    let la;
+    const isHl = (f && !linkCtx && (l.p === f.id || l.t === f.id)) || (linkCtx && (l.p === linkCtx.id || l.t === linkCtx.id)) || l === sl || l === hoverLink;
+    if (isHl) la = 1;
+    else if (f || sl || linkCtx) la = 0.07;
+    else la = 0.42;
+    if (filter && !isHl && !(matchFilter(p) && matchFilter(t))) la = Math.min(la, 0.06);
+    if (Math.abs(l.a - la) > 0.004) { l.a += (la - l.a) * 0.22; moving = true; } else l.a = la;
+    if (Math.max(p.x, t.x) < vx0 || Math.min(p.x, t.x) > vx1 || Math.max(p.y, t.y) < vy0 || Math.min(p.y, t.y) > vy1) continue;
+    if (isHl) { hl.push(l); continue; }
+    if (l.a < 0.01) continue;
+    const b = bezPts(p.x, p.y, t.x, t.y);
+    const g = ctx.createLinearGradient(p.x, p.y, t.x, t.y);
+    g.addColorStop(0, colorOf(groupName(p))); g.addColorStop(1, colorOf(groupName(t)));
+    ctx.globalAlpha = l.a; ctx.strokeStyle = g; ctx.lineWidth = baseW;
+    ctx.beginPath(); ctx.moveTo(b[0], b[1]); ctx.bezierCurveTo(b[2], b[3], b[4], b[5], b[6], b[7]); ctx.stroke();
+  }
+  for (const l of hl) {
+    const p = byId.get(l.p), t = byId.get(l.t), b = bezPts(p.x, p.y, t.x, t.y);
+    const g = ctx.createLinearGradient(p.x, p.y, t.x, t.y);
+    g.addColorStop(0, colorOf(groupName(p))); g.addColorStop(1, colorOf(groupName(t)));
+    const w = (l === sl ? 3.2 : 2.4) * Math.max(1, 0.8 / k);
+    ctx.globalAlpha = l.a; ctx.strokeStyle = g; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(b[0], b[1]); ctx.bezierCurveTo(b[2], b[3], b[4], b[5], b[6], b[7]); ctx.stroke();
+    if (!reduceMotion) {
+      ctx.setLineDash([2 / k, 14 / k]); ctx.lineDashOffset = -(now / 28) / k;
+      ctx.strokeStyle = '#fff'; ctx.globalAlpha = l.a * 0.95; ctx.lineWidth = w * 0.62;
+      ctx.beginPath(); ctx.moveTo(b[0], b[1]); ctx.bezierCurveTo(b[2], b[3], b[4], b[5], b[6], b[7]); ctx.stroke();
+      ctx.setLineDash([]); ambient = true;
+    }
+  }
+
+  // link drag preview
+  if (gesture && gesture.kind === 'link') {
+    const s = gesture.from, e = lt || gesture.pt;
+    const b = bezPts(s.x, s.y, e.x, e.y);
+    ctx.globalAlpha = 0.85; ctx.strokeStyle = INK; ctx.lineWidth = 2 / k; ctx.setLineDash([7 / k, 6 / k]);
+    ctx.beginPath(); ctx.moveTo(b[0], b[1]); ctx.bezierCurveTo(b[2], b[3], b[4], b[5], b[6], b[7]); ctx.stroke();
+    ctx.setLineDash([]);
+    if (!lt) { ctx.fillStyle = INK; circle(e.x, e.y, 4.5 / k); ctx.fill(); }
+  }
+
+  // nodes
+  const selN = selNode();
+  for (const n of data.nodes) {
+    if (n.x < vx0 || n.x > vx1 || n.y < vy0 || n.y > vy1) continue;
+    const a = n.a; if (a < 0.01) continue;
+    const r = n.r * n.s, x = n.x, y = n.y;
+    const col = colorOf(groupName(n));
+    const over = isOverdue(n);
+    if (over) {
+      ambient = true;
+      if (reduceMotion) { ctx.globalAlpha = a * 0.5; ctx.strokeStyle = PERSON; ctx.lineWidth = 2 / k; circle(x, y, r + 5); ctx.stroke(); }
+      else {
+        const ph = ((now / 1400) % 1);
+        ctx.globalAlpha = a * 0.55 * (1 - ph); ctx.strokeStyle = PERSON; ctx.lineWidth = 2.2 / Math.max(k, .5);
+        circle(x, y, r + 3 + ph * 14); ctx.stroke();
+        ctx.globalAlpha = a * 0.12; ctx.fillStyle = PERSON; circle(x, y, r + 4); ctx.fill();
+      }
+    }
+    // shadow + base
+    ctx.globalAlpha = a * 0.13; ctx.fillStyle = '#1B2030'; circle(x, y + 2, r + 0.8); ctx.fill();
+    ctx.globalAlpha = a; ctx.fillStyle = '#fff'; circle(x, y, r); ctx.fill();
+    const lw = Math.max(2.6, 1.3 / k);
+    if (n.type === 'person') {
+      ctx.strokeStyle = PERSON; ctx.lineWidth = lw; circle(x, y, r - lw / 2); ctx.stroke();
+      ctx.fillStyle = col; circle(x, y, r - lw - 2.4); ctx.fill();
+      if (r * k >= 14) {
+        ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = `700 ${(r * 0.56).toFixed(1)}px ${FONT}`;
+        ctx.fillText(initials(n.name), x, y + r * 0.04);
+      }
+    } else {
+      const tw = Math.max(3.2, 1.4 / k), rr = r - tw / 2;
+      ctx.strokeStyle = 'rgba(62,99,221,0.24)'; ctx.lineWidth = tw; circle(x, y, rr); ctx.stroke();
+      const pr = (n.status === 'done' ? 100 : n.progress) / 100;
+      if (pr > 0) {
+        ctx.strokeStyle = TASK; ctx.lineCap = pr >= 1 ? 'butt' : 'round';
+        ctx.beginPath(); ctx.arc(x, y, rr, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pr); ctx.stroke(); ctx.lineCap = 'round';
+      }
+      const ir = r - tw - 2.4;
+      ctx.fillStyle = col; circle(x, y, ir); ctx.fill();
+      if (n.status === 'done' && ir * k > 4) {
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(1.8, ir * 0.22);
+        ctx.beginPath(); ctx.moveTo(x - ir * .42, y + ir * .02); ctx.lineTo(x - ir * .1, y + ir * .34); ctx.lineTo(x + ir * .45, y - ir * .32); ctx.stroke();
+      } else if (n.status === 'paused' && ir * k > 4) {
+        ctx.fillStyle = '#fff'; const bw = ir * .2, bh = ir * .8;
+        ctx.fillRect(x - ir * .32, y - bh / 2, bw, bh); ctx.fillRect(x + ir * .12, y - bh / 2, bw, bh);
+      }
+      if ((n.priority === 'urgent' || n.priority === 'high') && n.status !== 'done') {
+        const bx = x + r * 0.74, by = y - r * 0.74, br = Math.max(4.6, 2.4 / k);
+        ctx.fillStyle = '#fff'; circle(bx, by, br + 1.6); ctx.fill();
+        ctx.fillStyle = PRIORITY[n.priority].color; circle(bx, by, br); ctx.fill();
+      }
+    }
+    if (n === lt) { ctx.strokeStyle = '#2F9E68'; ctx.lineWidth = 2.6 / k; circle(x, y, r + 6 / k); ctx.stroke(); }
+    else if (n === selN && !linkCtx) { ctx.strokeStyle = INK; ctx.lineWidth = 2 / k; circle(x, y, r + 5.5 / k); ctx.stroke(); }
+    else if (n === hoverNode && !linkCtx) { ctx.strokeStyle = 'rgba(27,32,48,.28)'; ctx.lineWidth = 1.6 / k; circle(x, y, r + 5 / k); ctx.stroke(); }
+    if (linkCtx && n !== linkCtx && n.type !== linkCtx.type && linkSet.has(linkCtx.type === 'person' ? lk(linkCtx.id, n.id) : lk(n.id, linkCtx.id))) {
+      const bx = x - r * 0.74, by = y - r * 0.74, br = Math.max(6, 4 / k);
+      ctx.fillStyle = '#2F9E68'; circle(bx, by, br); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = br * 0.32; ctx.beginPath(); ctx.moveTo(bx - br * .45, by); ctx.lineTo(bx - br * .1, by + br * .38); ctx.lineTo(bx + br * .48, by - br * .35); ctx.stroke();
+    }
+  }
+
+  // handle
+  const hn = handleNode();
+  if (hn) {
+    const h = handlePos(hn), hr = (hoverHandle || (gesture && gesture.kind === 'link') ? 9.5 : 8) / k;
+    const rc = hn.type === 'person' ? PERSON : TASK;
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(27,32,48,.12)'; circle(h.x, h.y + 1.2 / k, hr + 1 / k); ctx.fill();
+    ctx.fillStyle = hoverHandle ? rc : '#fff'; circle(h.x, h.y, hr); ctx.fill();
+    ctx.strokeStyle = rc; ctx.lineWidth = 1.8 / k; ctx.stroke();
+    ctx.strokeStyle = hoverHandle ? '#fff' : rc; ctx.lineWidth = 2 / k;
+    ctx.beginPath(); ctx.moveTo(h.x - hr * .45, h.y); ctx.lineTo(h.x + hr * .45, h.y); ctx.moveTo(h.x, h.y - hr * .45); ctx.lineTo(h.x, h.y + hr * .45); ctx.stroke();
+  }
+
+  // ----- labels (screen space) -----
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const fs = clamp(13.5 * Math.pow(k, 0.22), 11.5, 16.5);
+  const showAll = k >= 0.3, showSub = k >= 0.78;
+  ctx.textBaseline = 'alphabetic'; ctx.lineJoin = 'round';
+  for (const n of data.nodes) {
+    if (n.x < vx0 || n.x > vx1 || n.y < vy0 || n.y > vy1) continue;
+    const a = n.a; if (a < 0.05) continue;
+    const imp = n === f || (nb && nb.has(n.id)) || n === selN || n === lt;
+    if (!showAll && !imp) continue;
+    const sx = n.x * k + cam.x, sy = n.y * k + cam.y, sr = n.r * n.s * k;
+    const left = n.type === 'person';
+    const tx = left ? sx - sr - 10 : sx + sr + 10;
+    const sub = (showSub || n === f || n === selN || n === lt || (imp && k >= 0.62)) ? subText(n) : '';
+    const avail = left ? tx - 6 : cw - tx - 6;
+    if (avail < 24) continue;
+    ctx.textAlign = left ? 'right' : 'left';
+    ctx.globalAlpha = a;
+    const nameY = sub ? sy - 1 : sy + fs * 0.36;
+    ctx.font = `700 ${fs}px ${FONT}`;
+    ctx.strokeStyle = 'rgba(245,246,248,.92)'; ctx.lineWidth = 4.5;
+    const nm = fitText(short(n.name, 30), avail);
+    ctx.strokeText(nm, tx, nameY); ctx.fillStyle = INK; ctx.fillText(nm, tx, nameY);
+    if (sub) {
+      ctx.font = `500 ${fs - 2.5}px ${FONT}`;
+      const sy2 = sy + fs * 0.98;
+      const ss = fitText(short(sub, 44), avail);
+      ctx.lineWidth = 4; ctx.strokeText(ss, tx, sy2);
+      ctx.fillStyle = isOverdue(n) ? '#C9323A' : '#737A8C'; ctx.fillText(ss, tx, sy2);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  placeOverlays();
+  return moving;
+}
+
+/* ---------- DOM overlays following canvas ---------- */
+let zw1 = 0, zw2 = 0;
+function placeOverlays() {
+  const dx = cam.x;
+  if (!zw1) zw1 = zone1.offsetWidth; if (!zw2) zw2 = zone2.offsetWidth;
+  // each label sits in the middle of the visible part of its zone, like "1" and "2" on the sketch
+  const cdx = clamp(dx, 0, cw);
+  const x1 = clamp(cdx / 2 - zw1 / 2, 12, cdx - zw1 - 14);
+  zone1.style.transform = `translateX(${x1}px)`; zone1.classList.toggle('off', cdx < zw1 + 30);
+  const x2 = clamp((cdx + cw) / 2 - zw2 / 2, cdx + 14, cw - zw2 - 12);
+  zone2.style.transform = `translateX(${x2}px)`; zone2.classList.toggle('off', cw - cdx < zw2 + 30);
+  const pct = Math.round(cam.k * 100) + '%'; if (pct !== lastPct) { $('#zPct').textContent = pct; lastPct = pct; }
+
+  const busy = dragNode || (gesture && (gesture.kind === 'pan' || gesture.kind === 'pinch' || gesture.kind === 'link')) || modal.open || linkMode;
+  const n = selNode();
+  if (n && !busy) {
+    const s = toScreen(n.x, n.y), r = n.r * n.s * cam.k;
+    let y = s.y - r - 12, below = false;
+    if (y < 64) { y = s.y + r + 12; below = true; }
+    nodeBar.hidden = false; nodeBar.classList.toggle('below', below);
+    nodeBar.style.translate = `${clamp(s.x, 120, cw - 120)}px ${y}px`;
+  } else nodeBar.hidden = true;
+  const l = selLink();
+  if (l && !busy) {
+    const m = bezAt(linkBez(l), 0.5), s = toScreen(m.x, m.y);
+    linkBar.hidden = false;
+    linkBar.style.translate = `${clamp(s.x, 140, cw - 140)}px ${s.y - 14}px`;
+  } else linkBar.hidden = true;
+}
+
+/* ================= Frame loop ================= */
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (ui.tab === 'dash') return;          // the map is hidden: no canvas work
+  let active = false;
+  if (camAnim) { stepCam(now); active = true; }
+  else if (zoomAnchor) {
+    const dk = goal.k - cam.k;
+    cam.k = Math.abs(dk) > 0.0008 * goal.k ? cam.k + dk * 0.26 : goal.k;
+    cam.x = zoomAnchor.sx - zoomAnchor.wx * cam.k; cam.y = zoomAnchor.sy - zoomAnchor.wy * cam.k;
+    goal.x = cam.x; goal.y = cam.y;
+    if (cam.k === goal.k) zoomAnchor = null;
+    active = true;
+  }
+  if (layoutAnim) {
+    const p = clamp((now - layoutAnim.t0) / layoutAnim.dur, 0, 1), e = easeIO(p);
+    for (const n of data.nodes) if (n.lx1 != null) { n.x = lerp(n.lx0, n.lx1, e); n.y = lerp(n.ly0, n.ly1, e); }
+    if (p >= 1) { for (const n of data.nodes) n.lx1 = null; layoutAnim = null; sim.alpha = 0; scheduleSave(); }
+    active = true;
+  } else if (ui.physics && (sim.alpha > 0 || sim.alphaTarget > 0)) { tick(); active = true; }
+  if (divGlow > 0.01) { divGlow *= 0.93; active = true; } else divGlow = 0;
+  if (cam.x !== cw / 2) { cam.x = goal.x = cw / 2; needs = true; }   // the red divider never moves
+  if (active || needs || (ambient && now - lastAmb > 30)) {
+    needs = draw(now);
+    lastAmb = now;
+  }
+}
+
+/* ================= Actions ================= */
+function updateCounts() {
+  const np = data.nodes.filter(n => n.type === 'person').length, nt = data.nodes.length - np;
+  const no = data.nodes.filter(isOverdue).length;
+  $('#stP').textContent = np; $('#stT').textContent = nt; $('#stL').textContent = data.links.length;
+  $('#z1c').textContent = np; $('#z2c').textContent = nt;
+  zw1 = zw2 = 0;
+  const o = $('#stO'); o.hidden = !no; $('#stOn').textContent = no;
+  o.classList.toggle('on', !!(filter && filter.kind === 'overdue'));
+  $('#empty').hidden = data.nodes.length > 0;
+}
+function select(s) { sel = s; updateBarsContent(); dirty(); }
+function updateBarsContent() {
+  const n = selNode();
+  if (n) {
+    nodeBar.innerHTML = `<button data-nb="view">${ic('eye')}<span>Chi tiết</span></button><button data-nb="link">${ic('link')}<span>${n.type === 'person' ? 'Giao việc' : 'Gán người'}</span></button><span class="sep"></span><button data-nb="del" class="danger" aria-label="Xóa node">${ic('trash')}</button>`;
+  }
+  const l = selLink();
+  if (l) {
+    const p = byId.get(l.p), t = byId.get(l.t);
+    linkBar.innerHTML = `<span class="ftext"><b>${esc(short(p.name, 18))}</b> làm <b>${esc(short(t.name, 24))}</b></span><span class="sep"></span><button data-lb="del" class="danger">${ic('unlink')}<span>Bỏ nối</span></button>`;
+  }
+}
+function addLink(p, t, quiet) {
+  if (p.type !== 'person') [p, t] = [t, p];
+  if (linkSet.has(lk(p.id, t.id))) return false;
+  data.links.push({ id: uid(), p: p.id, t: t.id, a: 0 });
+  linkSet.add(lk(p.id, t.id));
+  return true;
+}
+function connect(a, b) {
+  const [p, t] = a.type === 'person' ? [a, b] : [b, a];
+  if (linkSet.has(lk(p.id, t.id))) { toast(`${short(p.name, 20)} đã được giao “${short(t.name, 26)}” từ trước`, { plain: true }); return; }
+  snapshot(); addLink(p, t); rebuild(); reheat(0.3); scheduleSave();
+  toast(`Đã giao “${short(t.name, 26)}” cho ${short(p.name, 20)}`, { action: 'Hoàn tác', onAction: undo });
+}
+function toggleLink(a, b) {
+  const [p, t] = a.type === 'person' ? [a, b] : [b, a];
+  snapshot();
+  if (linkSet.has(lk(p.id, t.id))) {
+    data.links = data.links.filter(l => !(l.p === p.id && l.t === t.id));
+    toast(`Đã bỏ giao “${short(t.name, 26)}” khỏi ${short(p.name, 20)}`, { plain: true });
+  } else {
+    addLink(p, t);
+    toast(`Đã giao “${short(t.name, 26)}” cho ${short(p.name, 20)}`, { plain: true });
+  }
+  rebuild(); reheat(0.25); scheduleSave();
+}
+function removeLink(l) {
+  snapshot();
+  data.links = data.links.filter(x => x !== l);
+  if (sel && sel.kind === 'link' && sel.id === l.id) sel = null;
+  rebuild(); reheat(0.2); scheduleSave();
+  toast('Đã bỏ nối', { action: 'Hoàn tác', onAction: undo });
+}
+function deleteNode(n) {
+  snapshot();
+  data.nodes = data.nodes.filter(x => x !== n);
+  data.links = data.links.filter(l => l.p !== n.id && l.t !== n.id);
+  if (sel && sel.id === n.id) sel = null;
+  if (hoverNode === n) hoverNode = null;
+  rebuild(); reheat(0.2); scheduleSave();
+  toast(`Đã xóa “${short(n.name, 28)}”`, { action: 'Hoàn tác', onAction: undo });
+}
+function enterLinkMode(n) {
+  linkMode = { from: n.id }; sel = { kind: 'node', id: n.id };
+  renderLinkBanner(); dirty();
+  // make sure the other zone is on screen so there is something to tap
+  const otherPx = n.type === 'person' ? cw - cam.x : cam.x;
+  if (otherPx < cw * 0.38) {
+    const k = Math.min(cam.k, Math.max(0.4, (cw / 2 - 48) / (Math.abs(n.x) + n.r)));
+    animateTo(0, n.y, k);
+  }
+}
+function exitLinkMode() { linkMode = null; $('#linkBanner').hidden = true; document.body.classList.remove('linking'); dirty(); }
+function renderLinkBanner() {
+  const n = byId.get(linkMode.from), b = $('#linkBanner');
+  document.body.classList.add('linking');
+  b.innerHTML = `<span class="bdot ${n.type}"></span><span>${n.type === 'person' ? 'Giao việc cho' : 'Gán người cho'} <b>${esc(short(n.name, 22))}</b>: chạm vào ${n.type === 'person' ? 'công việc' : 'nhân sự'} để nối hoặc bỏ nối</span><button data-lb2="done">Xong</button>`;
+  b.hidden = false;
+}
+function setFilter(f) {
+  filter = f;
+  renderFilterPill(); renderLegend(); updateCounts(); dirty();
+}
+function renderFilterPill() {
+  const el = $('#filterPill');
+  if (!filter) { el.hidden = true; return; }
+  const cnt = data.nodes.filter(matchFilter).length;
+  let lab;
+  if (filter.kind === 'group') lab = `<span class="bdot" style="background:${colorOf(filter.name)}"></span><span>${filter.type === 'person' ? 'Phòng ban' : 'Dự án'} <b>${esc(filter.name)}</b>, ${cnt} node</span>`;
+  else lab = `<span class="bdot" style="background:var(--danger)"></span><span>Việc <b>quá hạn</b> và người phụ trách, ${cnt} node</span>`;
+  el.innerHTML = `${lab}<button data-fp="x" aria-label="Bỏ lọc">${ic('x')}</button>`;
+  el.hidden = false;
+}
+function renderLegend() {
+  const el = $('#legend');
+  const groups = type => {
+    const m = new Map();
+    for (const n of data.nodes) if (n.type === type) { const g = groupName(n); m.set(g, (m.get(g) || 0) + 1); }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  };
+  const item = (type, g, c) => {
+    if (!g) return `<span class="lg-item" style="cursor:default"><i style="background:${NEUTRAL}"></i>Chưa phân nhóm<span>${c}</span></span>`;
+    const on = filter && filter.kind === 'group' && filter.type === type && filter.name === g;
+    return `<button class="lg-item${on ? ' on' : ''}" data-lg="${type}" data-g="${esc(g)}"><i style="background:${colorOf(g)}"></i>${esc(g)}<span>${c}</span></button>`;
+  };
+  const gp = groups('person'), gt = groups('task');
+  const no = data.nodes.filter(isOverdue).length;
+  const onO = filter && filter.kind === 'overdue';
+  el.innerHTML = `
+    <div class="lg-t"><span class="bdot person"></span>Phòng ban, khu 1</div>
+    <div class="lg-list">${gp.length ? gp.map(([g, c]) => item('person', g, c)).join('') : '<span class="lg-empty">Chưa có nhân sự</span>'}</div>
+    <div class="lg-t"><span class="bdot task"></span>Dự án, khu 2</div>
+    <div class="lg-list">${gt.length ? gt.map(([g, c]) => item('task', g, c)).join('') : '<span class="lg-empty">Chưa có công việc</span>'}</div>
+    <div class="lg-t">Tình trạng</div>
+    <div class="lg-list"><button class="lg-item${onO ? ' on' : ''}" data-lg="overdue"><i style="background:var(--danger)"></i>Quá hạn<span>${no}</span></button></div>`;
+}
+
+/* ================= Toast ================= */
+function toast(msg, { action, onAction, dur = 3600, warn, plain } = {}) {
+  const box = $('#toasts');
+  const el = document.createElement('div');
+  el.className = 'toast' + (warn ? ' warn' : '') + (plain || !action ? ' plain' : '');
+  const sp = document.createElement('span'); sp.textContent = msg; el.append(sp);
+  const kill = () => { if (!el.isConnected) return; el.classList.add('out'); setTimeout(() => el.remove(), 220); };
+  if (action) {
+    el.classList.remove('plain');
+    const b = document.createElement('button'); b.textContent = action;
+    b.onclick = () => { kill(); onAction && onAction(); };
+    el.append(b);
+  }
+  box.append(el);
+  while (box.children.length > 2) box.firstElementChild.remove();
+  setTimeout(kill, dur);
+}
+
+/* ================= Pointer interaction ================= */
+const ptrs = new Map();
+let lastTap = null;
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button === 2) return;
+  closePopovers();
+  try { cv.setPointerCapture(e.pointerId); } catch (_) { }
+  const p = localPt(e); ptrs.set(e.pointerId, p);
+  if (ptrs.size === 2) { startPinch(); return; }
+  if (ptrs.size > 2) return;
+  camAnim = null; zoomAnchor = null;
+  const w = toWorld(p), touch = e.pointerType !== 'mouse';
+  const hn = handleNode();
+  if (hn && e.button !== 1 && hitHandle(hn, w, e.pointerType)) {
+    gesture = { kind: 'link', from: hn, pt: w, target: null, id: e.pointerId };
+    dirty(); return;
+  }
+  const n = e.button === 1 ? null : nodeAt(w.x, w.y, (touch ? 10 : 3) / cam.k);
+  if (n) { gesture = { kind: 'pending', target: 'node', node: n, sx: p.x, sy: p.y, gx: w.x - n.x, gy: w.y - n.y, id: e.pointerId }; return; }
+  const l = e.button === 1 ? null : linkAt(w.x, w.y, (touch ? 12 : 5) / cam.k);
+  gesture = { kind: 'pending', target: l ? 'link' : 'bg', link: l, sx: p.x, sy: p.y, cam0: { x: cam.x, y: cam.y }, id: e.pointerId };
+});
+cv.addEventListener('pointermove', e => {
+  const p = localPt(e);
+  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, p);
+  if (gesture && gesture.kind === 'pinch') { updatePinch(); return; }
+  if (gesture && gesture.kind === 'wait') return;
+  if (!gesture) { if (e.pointerType === 'mouse') updateHover(p); return; }
+  if (gesture.id !== e.pointerId) return;
+  const w = toWorld(p);
+  if (gesture.kind === 'pending') {
+    const th = e.pointerType === 'mouse' ? 4 : 9;
+    if (Math.hypot(p.x - gesture.sx, p.y - gesture.sy) < th) return;
+    if (gesture.target === 'node') { if (linkMode) exitLinkMode(); startDrag(gesture.node); gesture.kind = 'drag'; }
+    else {
+      gesture.kind = 'pan'; cv.classList.add('panning');
+      // re-base so movement past threshold isn't lost
+    }
+  }
+  if (gesture.kind === 'drag') moveDrag(w);
+  else if (gesture.kind === 'pan') {
+    cam.y = goal.y = gesture.cam0.y + (p.y - gesture.sy);   // vertical scroll only: the divider stays put
+    dirty();
+  } else if (gesture.kind === 'link') {
+    gesture.pt = w;
+    const n = nodeAt(w.x, w.y, (e.pointerType === 'mouse' ? 8 : 16) / cam.k);
+    const tgt = n && n.type !== gesture.from.type ? n : null;
+    if (tgt !== gesture.target) gesture.target = tgt;
+    dirty();
+  }
+});
+function endPointer(e, cancelled) {
+  const had = ptrs.has(e.pointerId);
+  ptrs.delete(e.pointerId);
+  if (!gesture) return;
+  if (gesture.kind === 'pinch' || gesture.kind === 'wait') {
+    gesture = ptrs.size ? { kind: 'wait' } : null; dirty(); return;
+  }
+  if (gesture.id !== e.pointerId || !had) return;
+  const g = gesture; gesture = null; cv.classList.remove('panning');
+  const p = localPt(e);
+  if (cancelled) { if (g.kind === 'drag') endDrag(); dirty(); return; }
+  if (g.kind === 'drag') endDrag();
+  else if (g.kind === 'link') { if (g.target) connect(g.from, g.target); }
+  else if (g.kind === 'pending') handleTap(g, p);
+  if (e.pointerType === 'mouse') updateHover(p); else { hoverNode = null; hoverHandle = false; hoverLink = null; }
+  dirty();
+}
+cv.addEventListener('pointerup', e => endPointer(e, false));
+cv.addEventListener('pointercancel', e => endPointer(e, true));
+cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !gesture && (hoverNode || hoverLink)) { hoverNode = null; hoverLink = null; hoverHandle = false; dirty(); } });
+
+function handleTap(g, p) {
+  const now = performance.now();
+  const key = g.target === 'node' ? g.node.id : g.target === 'link' ? 'L' + g.link.id : 'bg';
+  const dbl = lastTap && now - lastTap.t < 340 && lastTap.key === key && Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < 30;
+  lastTap = dbl ? null : { t: now, key, x: p.x, y: p.y };
+  if (g.target === 'node') {
+    const n = g.node;
+    if (linkMode) {
+      const src = byId.get(linkMode.from);
+      if (n === src) { if (dbl) { exitLinkMode(); openView(n); } return; }
+      if (n.type !== src.type) toggleLink(src, n);
+      else { linkMode.from = n.id; sel = { kind: 'node', id: n.id }; renderLinkBanner(); dirty(); }
+      return;
+    }
+    select({ kind: 'node', id: n.id });
+    if (dbl) openView(n);
+  } else if (g.target === 'link') {
+    if (linkMode) { exitLinkMode(); return; }
+    select({ kind: 'link', id: g.link.id });
+  } else {
+    if (linkMode) { exitLinkMode(); return; }
+    if (sel) select(null);
+    if (dbl) { const w = toWorld(p); openForm(null, w.x < 0 ? 'person' : 'task', w); }
+  }
+}
+function updateHover(p) {
+  const w = toWorld(p);
+  let n = null, hh = false, l = null, cursor = 'grab';
+  const hn = handleNode();
+  if (hn && hitHandle(hn, w, 'mouse')) { hh = true; n = hn; cursor = 'crosshair'; }
+  else {
+    n = nodeAt(w.x, w.y, 3 / cam.k);
+    if (n) cursor = 'pointer';
+    else { l = linkAt(w.x, w.y, 5 / cam.k); if (l) cursor = 'pointer'; }
+  }
+  if (linkMode && !n) cursor = 'default';
+  if (hoverNode !== n || hoverHandle !== hh || hoverLink !== l) { hoverNode = n; hoverHandle = hh; hoverLink = l; dirty(); }
+  cv.style.cursor = cursor;
+}
+function startDrag(n) {
+  const i = data.nodes.indexOf(n);
+  if (i >= 0 && i < data.nodes.length - 1) { data.nodes.splice(i, 1); data.nodes.push(n); }
+  dragNode = n; n.fixed = true; n.pin = true; n.lx1 = null; hoverNode = null; hoverHandle = false;
+  if (!sel || sel.id !== n.id) { sel = { kind: 'node', id: n.id }; updateBarsContent(); }
+  if (ui.physics) { sim.alphaTarget = 0.05; sim.alpha = Math.max(sim.alpha, 0.05); }
+  cv.classList.add('dragging');
+}
+function moveDrag(w) {
+  const n = dragNode; if (!n) return;
+  n.x = w.x - gesture.gx; n.y = w.y - gesture.gy; n.vx = n.vy = 0;
+  const lim = (cw / 2 - 8) / cam.k - n.r * n.s;          // keep it on screen (no sideways scrolling)
+  if (Math.abs(n.x) > lim) n.x = Math.sign(n.x) * lim;
+  if (clampZone(n)) {
+    divGlow = 1;
+    if (!gesture.warned) { gesture.warned = true; toast(n.type === 'person' ? 'Nhân sự chỉ ở khu 1, không sang được khu công việc' : 'Công việc chỉ ở khu 2, không sang được khu nhân sự', { warn: true, dur: 2200 }); }
+  }
+  dirty();
+}
+function endDrag() {
+  if (!dragNode) return;
+  dragNode.fixed = false; dragNode.pin = true; dragNode = null; sim.alphaTarget = 0;
+  cv.classList.remove('dragging'); scheduleSave(); dirty();
+}
+function startPinch() {
+  const [a, b] = [...ptrs.values()];
+  if (gesture && gesture.kind === 'drag') endDrag();
+  cv.classList.remove('panning');
+  camAnim = null; zoomAnchor = null;
+  gesture = { kind: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, m0: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, cam0: { ...cam } };
+  dirty();
+}
+function updatePinch() {
+  const [a, b] = [...ptrs.values()]; if (!b) return;
+  const g = gesture, d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  const k = clamp(g.cam0.k * d / g.d0, KMIN, KMAX);
+  const wx = (g.m0.x - g.cam0.x) / g.cam0.k, wy = (g.m0.y - g.cam0.y) / g.cam0.k;
+  cam.k = goal.k = k; cam.x = goal.x = m.x - wx * k; cam.y = goal.y = m.y - wy * k;
+  dirty();
+}
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  let dy = e.deltaY; if (e.deltaMode === 1) dy *= 16; else if (e.deltaMode === 2) dy *= ch;
+  const f = Math.exp(-clamp(dy, -240, 240) * (e.ctrlKey ? 0.011 : 0.0018));
+  zoomAt(localPt(e), f);
+}, { passive: false });
+
+/* floatbar actions */
+nodeBar.addEventListener('pointerdown', e => e.stopPropagation());
+nodeBar.addEventListener('click', e => {
+  const b = e.target.closest('[data-nb]'); if (!b) return;
+  const n = selNode(); if (!n) return;
+  const a = b.dataset.nb;
+  if (a === 'view') openView(n);
+  else if (a === 'link') enterLinkMode(n);
+  else if (a === 'del') deleteNode(n);
+});
+linkBar.addEventListener('click', e => {
+  const b = e.target.closest('[data-lb]'); if (!b) return;
+  const l = selLink(); if (l) removeLink(l);
+});
+$('#linkBanner').addEventListener('click', e => { if (e.target.closest('[data-lb2]')) exitLinkMode(); });
+$('#filterPill').addEventListener('click', e => { if (e.target.closest('[data-fp]')) setFilter(null); });
+
+/* ================= Modal ================= */
+let confirmResolve = null;
+function showModal() { modalEl.hidden = false; modal.open = true; dirty(); }
+function closeModal() {
+  modalEl.hidden = true; modal = { open: false };
+  if (confirmResolve) { const r = confirmResolve; confirmResolve = null; r(false); }
+  dirty();
+}
+modalEl.addEventListener('pointerdown', e => { if (e.target === modalEl) { modalEl._down = true; } else modalEl._down = false; });
+modalEl.addEventListener('click', e => { if (e.target === modalEl && modalEl._down) closeModal(); });
+
+function tag(html, cls = '') { return `<span class="tag ${cls}">${html}</span>`; }
+function row(icon, k, v) { return v ? `<div class="row"><div class="k">${ic(icon)}${k}</div><div class="v">${v}</div></div>` : ''; }
+function personAvatar(n, sm) { return `<span class="pav${sm ? ' sm' : ''}" style="--c:${colorOf(n.dept)}">${esc(initials(n.name))}</span>`; }
+function taskAvatar(n, sm) {
+  const p = n.status === 'done' ? 100 : n.progress;
+  return `<span class="tav${sm ? ' sm' : ''}${n.status === 'done' ? ' done' : ''}" style="--c:${colorOf(n.project)};--p:${p}"><span>${sm ? '' : p + '%'}</span></span>`;
+}
+function dueTag(t) {
+  if (!t.due) return '';
+  const dl = daysLeft(t.due);
+  const cls = t.status === 'done' ? '' : dl < 0 ? 'danger' : dl <= 2 ? 'warn' : '';
+  return tag(`${ic('calendar', ' style="width:13px;height:13px"')}${cap(dueText(t))}`, cls);
+}
+
+function openView(n) {
+  if (!n) return;
+  if (linkMode) exitLinkMode();
+  sel = { kind: 'node', id: n.id }; updateBarsContent();
+  modal = { open: true, mode: 'view', id: n.id };
+  sheet.innerHTML = n.type === 'person' ? viewPerson(n) : viewTask(n);
+  showModal();
+  setTimeout(() => sheet.focus({ preventScroll: true }), 30);
+}
+function viewPerson(n) {
+  const tasks = [...adj.get(n.id)].map(id => byId.get(id)).sort((a, b) => (isOverdue(b) - isOverdue(a)) || ((a.status === 'done') - (b.status === 'done')) || (daysLeft(a.due) ?? 9e9) - (daysLeft(b.due) ?? 9e9));
+  const over = tasks.filter(isOverdue).length, done = tasks.filter(t => t.status === 'done').length;
+  const rows = row('phone', 'Điện thoại', n.phone ? `<a href="tel:${esc(n.phone.replace(/[^\d+]/g, ''))}">${esc(n.phone)}</a>` : '') +
+    row('mail', 'Email', n.email ? `<a href="mailto:${esc(n.email)}">${esc(n.email)}</a>` : '') +
+    row('note', 'Ghi chú', esc(n.note));
+  return `
+  <div class="sheet-head">
+    <div class="kind"><span class="bdot person"></span>Nhân sự, khu 1</div>
+    <div class="vh">${personAvatar(n)}<div class="vh-text"><h2 class="v-name">${esc(n.name)}</h2>${n.role ? `<div class="v-sub">${esc(n.role)}</div>` : ''}</div></div>
+    <button class="btn ghost icon close-x" data-act="close" aria-label="Đóng">${ic('x')}</button>
+  </div>
+  <div class="sheet-body">
+    <div class="tags">
+      ${n.dept ? tag(`<span class="d" style="background:${colorOf(n.dept)}"></span>${esc(n.dept)}`) : ''}
+      ${tag(`${tasks.length} việc`)}
+      ${done ? tag(`${done} hoàn thành`, 'ok') : ''}
+      ${over ? tag(`${over} quá hạn`, 'danger') : ''}
+    </div>
+    ${rows ? `<div class="rows">${rows}</div>` : `<div class="muted-note">Chưa có số điện thoại, email hay ghi chú. Bấm Chỉnh sửa để bổ sung.</div>`}
+    <div class="sec"><h5>Công việc đang giao <span>${tasks.length}</span></h5><button class="lnk" data-act="links">${ic('link')}Giao việc</button></div>
+    ${tasks.length ? tasks.map(t => `
+      <div class="litem" data-act="goto" data-id="${t.id}">
+        ${taskAvatar(t, true)}
+        <div class="li-main"><div class="nm">${esc(t.name)}</div>
+          <div class="mt"><span class="st" style="--sc:${STATUS[t.status].color}">${STATUS[t.status].label}</span>${t.status !== 'done' ? `, ${t.progress}%` : ''}${t.due ? `, <span class="${isOverdue(t) ? 'od' : ''}">${dueText(t)}</span>` : ''}</div></div>
+        <button class="x-btn" data-act="unlink" data-id="${t.id}" aria-label="Bỏ giao việc này">${ic('x')}</button>
+      </div>`).join('') : `<div class="empty-line">Chưa được giao việc nào.</div>`}
+  </div>
+  <div class="sheet-foot">
+    <button class="btn danger-ghost" data-act="del">${ic('trash')}<span>Xóa</span></button>
+    <span class="sp"></span>
+    ${ui.tab === 'dash' ? `<button class="btn ghost" data-act="onmap">${ic('map')}<span class="lbl">Xem trên sơ đồ</span></button>` : ''}
+    <button class="btn primary" data-act="edit">${ic('edit')}Chỉnh sửa</button>
+  </div>`;
+}
+function viewTask(n) {
+  const people = [...adj.get(n.id)].map(id => byId.get(id)).sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+  const pr = PRIORITY[n.priority], st = STATUS[n.status];
+  const p = n.status === 'done' ? 100 : n.progress;
+  const rows = row('folder', 'Dự án', n.project ? esc(n.project) : '') +
+    row('calendar', 'Hạn chót', n.due ? `${fmtDate(n.due)}${n.status !== 'done' ? `, <span class="${isOverdue(n) ? 'od' : ''}">${dueText(n)}</span>` : ''}` : '') +
+    row('note', 'Ghi chú', esc(n.note));
+  return `
+  <div class="sheet-head">
+    <div class="kind"><span class="bdot task"></span>Công việc, khu 2</div>
+    <div class="vh">${taskAvatar(n)}<div class="vh-text"><h2 class="v-name">${esc(n.name)}</h2>${n.project ? `<div class="v-sub">${esc(n.project)}</div>` : ''}</div></div>
+    <button class="btn ghost icon close-x" data-act="close" aria-label="Đóng">${ic('x')}</button>
+  </div>
+  <div class="sheet-body">
+    <div class="tags">
+      ${tag(`<span class="d" style="background:${st.color}"></span>${st.label}`, n.status === 'done' ? 'ok' : '')}
+      ${tag(`${ic('flag', ' style="width:13px;height:13px;color:' + pr.color + '"')}Ưu tiên ${pr.label.toLowerCase()}`)}
+      ${dueTag(n)}
+    </div>
+    <div class="prog"><div class="prog-top"><span>Tiến độ</span><b>${p}%</b></div><div class="bar"><i style="width:${p}%"></i></div></div>
+    ${rows ? `<div class="rows">${rows}</div>` : ''}
+    <div class="sec"><h5>Người thực hiện <span>${people.length}</span></h5><button class="lnk" data-act="links">${ic('link')}Gán người</button></div>
+    ${people.length ? people.map(q => `
+      <div class="litem" data-act="goto" data-id="${q.id}">
+        ${personAvatar(q, true)}
+        <div class="li-main"><div class="nm">${esc(q.name)}</div><div class="mt">${esc([q.role, q.dept].filter(Boolean).join(', ') || 'Chưa có chức vụ')}</div></div>
+        <button class="x-btn" data-act="unlink" data-id="${q.id}" aria-label="Bỏ gán người này">${ic('x')}</button>
+      </div>`).join('') : `<div class="empty-line">Chưa có ai được gán.</div>`}
+  </div>
+  <div class="sheet-foot">
+    <button class="btn danger-ghost" data-act="del">${ic('trash')}<span>Xóa</span></button>
+    <span class="sp"></span>
+    ${ui.tab === 'dash' ? `<button class="btn ghost" data-act="onmap">${ic('map')}<span class="lbl">Xem trên sơ đồ</span></button>` : ''}
+    <button class="btn primary" data-act="edit">${ic('edit')}Chỉnh sửa</button>
+  </div>`;
+}
+
+function openForm(n, type, pos, focusLinks) {
+  if (linkMode) exitLinkMode();
+  type = n ? n.type : type;
+  modal = { open: true, mode: 'form', id: n ? n.id : null, type, pos: pos || null };
+  sheet.innerHTML = formHtml(n, type);
+  showModal();
+  bindForm(n, type);
+  setTimeout(() => {
+    if (focusLinks) { const q = $('#pkQ', sheet); if (q) { q.scrollIntoView({ block: 'center', behavior: 'smooth' }); q.focus({ preventScroll: true }); } }
+    else { const f = $('.f-name', sheet); if (f && !(matchMedia('(hover:none)').matches && n)) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); } }
+  }, 60);
+}
+function datalist(id, type) {
+  const s = new Set(data.nodes.filter(x => x.type === type).map(groupName).filter(Boolean));
+  return `<datalist id="${id}">${[...s].sort((a, b) => a.localeCompare(b, 'vi')).map(g => `<option value="${esc(g)}">`).join('')}</datalist>`;
+}
+function formHtml(n, type) {
+  const isNew = !n, v = n || {};
+  const person = type === 'person';
+  let fields;
+  if (person) {
+    fields = `
+      <div class="field"><label for="fRole">${ic('brief', ' style="width:14px;height:14px"')}Chức vụ</label><input id="fRole" name="role" maxlength="120" value="${esc(v.role)}" placeholder="VD: Trưởng nhóm"></div>
+      <div class="field"><label for="fDept">${ic('building', ' style="width:14px;height:14px"')}Phòng ban</label><div class="gwrap"><span class="gsw" style="--c:${peekColor(v.dept)}"></span><input id="fDept" name="dept" maxlength="80" list="dlDept" value="${esc(v.dept)}" placeholder="VD: Kinh doanh" autocomplete="off"></div>${datalist('dlDept', 'person')}</div>
+      <div class="field"><label for="fPhone">${ic('phone', ' style="width:14px;height:14px"')}Điện thoại</label><input id="fPhone" name="phone" type="tel" inputmode="tel" maxlength="40" value="${esc(v.phone)}" placeholder="09xx xxx xxx"></div>
+      <div class="field"><label for="fEmail">${ic('mail', ' style="width:14px;height:14px"')}Email</label><input id="fEmail" name="email" type="email" inputmode="email" maxlength="120" value="${esc(v.email)}" placeholder="ten@congty.vn"></div>
+      <div class="field full"><label for="fNote">${ic('note', ' style="width:14px;height:14px"')}Ghi chú</label><textarea id="fNote" name="note" maxlength="4000" placeholder="Thông tin thêm về người này">${esc(v.note)}</textarea></div>`;
+  } else {
+    const st = v.status || 'todo', pr = v.priority || 'med', pg = v.progress ?? 0;
+    fields = `
+      <div class="field full"><label for="fProj">${ic('folder', ' style="width:14px;height:14px"')}Dự án hoặc nhóm việc</label><div class="gwrap"><span class="gsw" style="--c:${peekColor(v.project)}"></span><input id="fProj" name="project" maxlength="80" list="dlProj" value="${esc(v.project)}" placeholder="VD: Website mới" autocomplete="off"></div>${datalist('dlProj', 'task')}</div>
+      <div class="field"><label for="fStatus">Trạng thái</label><select id="fStatus" name="status">${Object.entries(STATUS).map(([k, s]) => `<option value="${k}"${k === st ? ' selected' : ''}>${s.label}</option>`).join('')}</select></div>
+      <div class="field"><label for="fPri">${ic('flag', ' style="width:14px;height:14px"')}Ưu tiên</label><select id="fPri" name="priority">${Object.entries(PRIORITY).map(([k, s]) => `<option value="${k}"${k === pr ? ' selected' : ''}>${s.label}</option>`).join('')}</select></div>
+      <div class="field"><label for="fDue">${ic('calendar', ' style="width:14px;height:14px"')}Hạn chót</label><input id="fDue" name="due" type="date" value="${esc(v.due)}"></div>
+      <div class="field"><label for="fProg">Tiến độ</label><div class="range-row" style="height:42px"><input id="fProg" name="progress" type="range" min="0" max="100" step="5" value="${pg}" style="--v:${pg}%"><output id="fProgO">${pg}%</output></div></div>
+      <div class="field full"><label for="fNote">${ic('note', ' style="width:14px;height:14px"')}Ghi chú</label><textarea id="fNote" name="note" maxlength="4000" placeholder="Mô tả, yêu cầu, lưu ý">${esc(v.note)}</textarea></div>`;
+  }
+  return `
+  <form id="nodeForm" novalidate style="display:contents">
+  <div class="sheet-head">
+    <div class="kind"><span class="bdot ${type}"></span>${isNew ? (person ? 'Thêm nhân sự mới, khu 1' : 'Thêm công việc mới, khu 2') : (person ? 'Chỉnh sửa nhân sự' : 'Chỉnh sửa công việc')}</div>
+    <input class="f-name" name="name" maxlength="140" value="${esc(v.name)}" placeholder="${person ? 'Họ và tên' : 'Tên công việc'}" aria-label="${person ? 'Họ và tên' : 'Tên công việc'}" autocomplete="off" enterkeyhint="done">
+    <div class="f-err" id="fErr" hidden></div>
+    <button type="button" class="btn ghost icon close-x" data-act="close" aria-label="Đóng">${ic('x')}</button>
+  </div>
+  <div class="sheet-body">
+    <div class="grid2">${fields}</div>
+    ${pickerHtml(n, type)}
+  </div>
+  <div class="sheet-foot">
+    <button type="button" class="btn ghost" data-act="${isNew ? 'close' : 'back'}">Hủy</button>
+    <span class="sp"></span>
+    <button type="submit" class="btn primary">${ic('check')}${isNew ? (person ? 'Thêm nhân sự' : 'Thêm công việc') : 'Lưu thay đổi'}</button>
+  </div>
+  </form>`;
+}
+function pickerHtml(n, type) {
+  const ot = type === 'person' ? 'task' : 'person';
+  const others = data.nodes.filter(x => x.type === ot).sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+  const linked = n ? adj.get(n.id) : new Set();
+  const title = type === 'person' ? 'Giao công việc' : 'Người thực hiện';
+  if (!others.length) return `<div class="sec"><h5>${title}</h5></div><div class="empty-line">Chưa có ${ot === 'task' ? 'công việc' : 'nhân sự'} nào. Thêm sau rồi nối bằng cách kéo chấm + trên sơ đồ.</div>`;
+  return `<div class="sec"><h5>${title}</h5><span class="pk-count" id="pkCount">${linked.size} đã chọn</span></div>
+  <div class="picker">
+    ${others.length > 6 ? `<div class="pk-search">${ic('search')}<input id="pkQ" placeholder="Lọc nhanh theo tên, nhóm" autocomplete="off"></div>` : ''}
+    <div class="pk-list">${others.map(o => {
+      const meta = o.type === 'task' ? [o.project, STATUS[o.status].label].filter(Boolean).join(', ') : [o.role, o.dept].filter(Boolean).join(', ');
+      return `<label class="pitem" data-s="${esc(norm(o.name + ' ' + meta))}"><input type="checkbox" name="lnk" value="${o.id}"${linked.has(o.id) ? ' checked' : ''}><span class="pbox"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="pdot ${o.type}" style="--c:${colorOf(groupName(o))}"></span><span class="pn">${esc(o.name)}</span><span class="pm">${esc(meta)}</span></label>`;
+    }).join('')}</div>
+  </div>`;
+}
+function bindForm(n, type) {
+  const form = $('#nodeForm', sheet);
+  const pk = $('#pkQ', sheet);
+  if (pk) pk.addEventListener('input', () => { const q = norm(pk.value); $$('.pitem', sheet).forEach(it => it.hidden = q && !it.dataset.s.includes(q)); });
+  form.addEventListener('change', e => { if (e.target.name === 'lnk') { const c = $('#pkCount', sheet); if (c) c.textContent = $$('input[name=lnk]:checked', sheet).length + ' đã chọn'; } });
+  const g = $('#fDept', sheet) || $('#fProj', sheet);
+  if (g) g.addEventListener('input', () => { g.parentElement.querySelector('.gsw').style.setProperty('--c', peekColor(g.value)); });
+  const rg = $('#fProg', sheet), out = $('#fProgO', sheet), stS = $('#fStatus', sheet);
+  if (rg) {
+    rg.addEventListener('input', () => {
+      out.textContent = rg.value + '%'; rg.style.setProperty('--v', rg.value + '%');
+      const v = +rg.value;
+      if (v === 100) stS.value = 'done';
+      else if (stS.value === 'done') stS.value = 'doing';
+      else if (v > 0 && stS.value === 'todo') stS.value = 'doing';
+    });
+    stS.addEventListener('change', () => {
+      if (stS.value === 'done') { rg.value = 100; } else if (stS.value === 'todo' && +rg.value === 100) rg.value = 0;
+      out.textContent = rg.value + '%'; rg.style.setProperty('--v', rg.value + '%');
+    });
+  }
+  const nameIn = $('.f-name', sheet);
+  nameIn.addEventListener('input', () => { nameIn.classList.remove('err'); $('#fErr', sheet).hidden = true; });
+  form.addEventListener('submit', e => { e.preventDefault(); submitForm(form, n, type); });
+}
+function submitForm(form, n, type) {
+  const fd = new FormData(form);
+  const name = String(fd.get('name') || '').trim();
+  if (!name) {
+    const ni = $('.f-name', sheet); ni.classList.add('err'); ni.focus();
+    const er = $('#fErr', sheet); er.textContent = type === 'person' ? 'Nhập họ tên để lưu nhân sự.' : 'Nhập tên công việc để lưu.'; er.hidden = false;
+    return;
+  }
+  const email = String(fd.get('email') || '').trim();
+  if (type === 'person' && email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const ei = $('#fEmail', sheet); ei.focus(); ei.style.borderColor = 'var(--danger)';
+    toast('Email chưa đúng dạng, ví dụ: ten@congty.vn', { warn: true }); return;
+  }
+  snapshot();
+  const now = new Date().toISOString();
+  const isNew = !n;
+  if (isNew) {
+    n = { id: uid(), type, createdAt: now, vx: 0, vy: 0, s: 0.01, a: 1 };
+    const pos = modal.pos || placeNew(type);
+    n.x = pos.x; n.y = pos.y;
+    data.nodes.push(n);
+  }
+  n.updatedAt = now; n.name = name; n.note = String(fd.get('note') || '').trim();
+  if (type === 'person') {
+    n.role = String(fd.get('role') || '').trim(); n.dept = String(fd.get('dept') || '').trim();
+    n.phone = String(fd.get('phone') || '').trim(); n.email = email;
+  } else {
+    n.project = String(fd.get('project') || '').trim();
+    n.status = STATUS[fd.get('status')] ? fd.get('status') : 'todo';
+    n.priority = PRIORITY[fd.get('priority')] ? fd.get('priority') : 'med';
+    n.progress = clamp(+fd.get('progress') || 0, 0, 100);
+    if (n.status === 'done') n.progress = 100;
+    n.due = String(fd.get('due') || '');
+  }
+  const boxes = $$('input[name=lnk]', sheet);
+  if (boxes.length) {
+    const want = new Set(boxes.filter(b => b.checked).map(b => b.value));
+    data.links = data.links.filter(l => { const other = type === 'person' ? (l.p === n.id ? l.t : null) : (l.t === n.id ? l.p : null); return other === null || want.has(other); });
+    rebuild();
+    for (const id of want) { const o = byId.get(id); if (o) addLink(n, o); }
+  }
+  colorOf(groupName(n));
+  rebuild(); clampZone(n);
+  reheat(isNew ? 0.35 : 0.2); scheduleSave();
+  if (isNew) {
+    closeModal(); select({ kind: 'node', id: n.id });
+    const s = toScreen(n.x, n.y);
+    if (s.x < 40 || s.x > cw - 40 || s.y < 60 || s.y > ch - 80) focusNode(n, cam.k);
+    toast(`Đã thêm ${type === 'person' ? 'nhân sự' : 'công việc'} “${short(name, 30)}”`, { action: 'Hoàn tác', onAction: undo });
+  } else {
+    openView(n);
+    toast('Đã lưu thay đổi', { action: 'Hoàn tác', onAction: undo });
+  }
+}
+function placeNew(type) {
+  // near the middle of what is on screen, on the right side of the divider, in a free spot
+  const c = toWorld({ x: cw / 2, y: ch / 2 }), sg = type === 'person' ? -1 : 1;
+  const sideVisible = type === 'person' ? cam.x > 120 : cw - cam.x > 120;
+  const near = sideVisible ? { x: sg * Math.max(GAP_IN + 60, sg * c.x), y: c.y } : { x: sg * (GAP_IN + zone.W / 3), y: c.y };
+  if (sideVisible) {
+    const edge = toWorld({ x: type === 'person' ? 40 : cw - 40, y: 0 }).x;
+    near.x = sg * Math.min(Math.abs(near.x), Math.max(GAP_IN + 60, Math.abs(edge) - 260 / cam.k));
+  }
+  return findFreeSpot(type, near);
+}
+
+sheet.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  const n = modal.id ? byId.get(modal.id) : null;
+  if (act === 'close') return closeModal();
+  if (act === 'back') return n ? openView(n) : closeModal();
+  if (act === 'edit' && n) return openForm(n);
+  if (act === 'onmap' && n) { closeModal(); setTab('map'); select({ kind: 'node', id: n.id }); focusNode(n, 1); return; }
+  if (act === 'links' && n) return openForm(n, null, null, true);
+  if (act === 'goto') { const o = byId.get(b.dataset.id); if (o) { focusNode(o, cam.k); openView(o); } return; }
+  if (act === 'unlink' && n) {
+    e.stopPropagation();
+    const o = byId.get(b.dataset.id); if (!o) return;
+    const [p, t] = n.type === 'person' ? [n, o] : [o, n];
+    snapshot(); data.links = data.links.filter(l => !(l.p === p.id && l.t === t.id));
+    rebuild(); reheat(0.2); scheduleSave(); openView(n);
+    toast(`Đã bỏ nối “${short(t.name, 26)}” với ${short(p.name, 20)}`, { action: 'Hoàn tác', onAction: () => { undo(); const m = byId.get(n.id); if (m) openView(m); } });
+    return;
+  }
+  if (act === 'del' && n) {
+    if (!b.classList.contains('armed')) {
+      b.classList.add('armed'); b.querySelector('span').textContent = 'Bấm lần nữa để xóa';
+      clearTimeout(b._t); b._t = setTimeout(() => { if (b.isConnected) { b.classList.remove('armed'); b.querySelector('span').textContent = 'Xóa'; } }, 3000);
+      return;
+    }
+    closeModal(); deleteNode(n); return;
+  }
+  if (act === 'cok') { const r = confirmResolve; confirmResolve = null; closeModal(); r && r(true); return; }
+  if (act === 'cno') { closeModal(); return; }
+});
+function confirmDialog({ title, text, ok, danger }) {
+  return new Promise(res => {
+    if (confirmResolve) confirmResolve(false);
+    modal = { open: true, mode: 'confirm' };
+    sheet.innerHTML = `<div class="confirm-body"><h3>${esc(title)}</h3><p>${esc(text)}</p></div>
+      <div class="sheet-foot" style="margin-top:18px"><span class="sp"></span><button class="btn ghost" data-act="cno">Hủy</button><button class="btn primary" data-act="cok" ${danger ? 'style="background:var(--danger);border-color:var(--danger)"' : ''}>${esc(ok)}</button></div>`;
+    showModal(); confirmResolve = res;
+    setTimeout(() => { const c = sheet.querySelector('[data-act="cok"]'); c && c.focus(); }, 30);
+  });
+}
+
+/* ================= Search ================= */
+const q = $('#q'), qres = $('#qres');
+let qActive = 0, qItems = [];
+function renderResults() {
+  const s = norm(q.value);
+  if (!s) { qres.hidden = true; qItems = []; return; }
+  const res = [];
+  for (const n of data.nodes) {
+    const nm = norm(n.name), extra = norm([n.role, n.dept, n.project, n.note].filter(Boolean).join(' '));
+    let sc = 0;
+    if (nm.startsWith(s)) sc = 4; else if (nm.split(' ').some(w => w.startsWith(s))) sc = 3; else if (nm.includes(s)) sc = 2; else if (extra.includes(s)) sc = 1;
+    if (sc) res.push({ n, sc });
+  }
+  res.sort((a, b) => b.sc - a.sc || a.n.name.localeCompare(b.n.name, 'vi'));
+  qItems = res.slice(0, 9).map(r => r.n); qActive = 0;
+  qres.innerHTML = qItems.length ? qItems.map((n, i) => {
+    const meta = n.type === 'person' ? [n.role, n.dept].filter(Boolean).join(', ') : [n.project, STATUS[n.status].label, dueText(n)].filter(Boolean).join(', ');
+    return `<div class="qitem${i === 0 ? ' active' : ''}" data-i="${i}"><span class="pdot ${n.type}" style="--c:${colorOf(groupName(n))}"></span><div style="min-width:0"><div class="qn">${esc(n.name)}</div>${meta ? `<div class="qm">${esc(meta)}</div>` : ''}</div><span class="qt">${n.type === 'person' ? 'Khu 1' : 'Khu 2'}</span></div>`;
+  }).join('') : `<div class="qempty">Không tìm thấy “${esc(q.value)}”. Thử tên người, tên việc hoặc dự án.</div>`;
+  qres.hidden = false;
+}
+function pickResult(n) {
+  if (!n) return;
+  qres.hidden = true; q.value = ''; q.blur(); $('#topbar').classList.remove('searching');
+  if (ui.tab === 'dash') { openView(n); return; }
+  if (linkMode) exitLinkMode();
+  select({ kind: 'node', id: n.id }); focusNode(n, Math.max(cam.k, 1));
+}
+q.addEventListener('input', renderResults);
+q.addEventListener('focus', () => { if (q.value) renderResults(); });
+q.addEventListener('keydown', e => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault(); if (!qItems.length) return;
+    qActive = (qActive + (e.key === 'ArrowDown' ? 1 : -1) + qItems.length) % qItems.length;
+    $$('.qitem', qres).forEach((el, i) => el.classList.toggle('active', i === qActive));
+  } else if (e.key === 'Enter') { e.preventDefault(); pickResult(qItems[qActive]); }
+  else if (e.key === 'Escape') { q.value = ''; qres.hidden = true; q.blur(); $('#topbar').classList.remove('searching'); }
+});
+qres.addEventListener('pointerdown', e => { e.preventDefault(); const it = e.target.closest('.qitem'); if (it) pickResult(qItems[+it.dataset.i]); });
+$('#searchBtn').addEventListener('click', () => { $('#topbar').classList.add('searching'); setTimeout(() => q.focus(), 20); });
+$('#searchClose').addEventListener('click', () => { q.value = ''; qres.hidden = true; $('#topbar').classList.remove('searching'); });
+
+/* ================= Toolbar, menu, docks ================= */
+function closePopovers() {
+  $('#menu').hidden = true; $('#legend').hidden = true;
+  if (document.activeElement === q) q.blur();
+  qres.hidden = true;
+  if (!q.value) $('#topbar').classList.remove('searching');
+}
+document.addEventListener('pointerdown', e => {
+  if (!e.target.closest('.menu-wrap')) $('#menu').hidden = true;
+  if (!e.target.closest('.legend-wrap')) $('#legend').hidden = true;
+  if (!e.target.closest('.search')) { qres.hidden = true; if (!q.value && !e.target.closest('#searchBtn')) $('#topbar').classList.remove('searching'); }
+});
+$('#brand').addEventListener('click', e => { e.preventDefault(); fitView(); });
+$('#addP').addEventListener('click', () => openForm(null, 'person'));
+$('#addT').addEventListener('click', () => openForm(null, 'task'));
+$('#menuBtn').addEventListener('click', () => { $('#menu').hidden = !$('#menu').hidden; });
+$('#menu').addEventListener('click', async e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  $('#menu').hidden = true;
+  const m = b.dataset.m;
+  if (m === 'export') exportJSON();
+  else if (m === 'import') $('#fileIn').click();
+  else if (m === 'fit') fitView();
+  else if (m === 'layout') doLayout();
+  else if (m === 'undo') undo();
+  else if (m === 'help') { ui.hintHidden = false; saveUI(); $('#hint').hidden = false; }
+  else if (m === 'sample') {
+    if (data.nodes.length && !(await confirmDialog({ title: 'Nạp dữ liệu mẫu?', text: `Dữ liệu hiện tại (${data.nodes.length} node) sẽ được thay bằng dữ liệu mẫu. Bạn vẫn có thể hoàn tác ngay sau đó.`, ok: 'Nạp dữ liệu mẫu' }))) return;
+    snapshot(); loadSample(); toast('Đã nạp dữ liệu mẫu', { action: 'Hoàn tác', onAction: undo });
+  }
+  else if (m === 'clear') {
+    if (!data.nodes.length) { toast('Chưa có dữ liệu để xóa', { plain: true }); return; }
+    if (!(await confirmDialog({ title: 'Xóa toàn bộ dữ liệu?', text: `Toàn bộ ${data.nodes.length} node và ${data.links.length} kết nối sẽ bị xóa khỏi trình duyệt này. Nên xuất JSON để sao lưu trước.`, ok: 'Xóa toàn bộ', danger: true }))) return;
+    snapshot(); data = { nodes: [], links: [], groupColors: {} }; sel = null; filter = null; exitLinkMode();
+    rebuild(); scheduleSave(); fitView();
+    toast('Đã xóa toàn bộ dữ liệu', { action: 'Hoàn tác', onAction: undo });
+  }
+});
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(serialize(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `nodetodo-${ymd(new Date())}.json`; document.body.append(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  toast(`Đã xuất ${data.nodes.length} node, ${data.links.length} kết nối`, { plain: true });
+}
+$('#fileIn').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const txt = await f.text(); const nd = normalize(JSON.parse(txt));
+    if (data.nodes.length && !(await confirmDialog({ title: 'Nhập dữ liệu từ file?', text: `File có ${nd.nodes.length} node và ${nd.links.length} kết nối. Dữ liệu hiện tại sẽ được thay thế, bạn có thể hoàn tác ngay sau đó.`, ok: 'Nhập và thay thế' }))) return;
+    snapshot(); data = nd; sel = null; filter = null; exitLinkMode();
+    rebuild();
+    if (nd.layoutV !== 3) relayout(true); else fitView();
+    scheduleSave();
+    toast(`Đã nhập ${nd.nodes.length} node từ ${short(f.name, 30)}`, { action: 'Hoàn tác', onAction: undo });
+  } catch (err) {
+    toast('Không đọc được file: ' + (err && err.message ? err.message : 'JSON không hợp lệ'), { warn: true, dur: 4500 });
+  }
+});
+$('#stO').addEventListener('click', () => { if (ui.tab === 'dash') { setTab('map'); setFilter({ kind: 'overdue' }); return; } setFilter(filter && filter.kind === 'overdue' ? null : { kind: 'overdue' }); });
+$('#legendBtn').addEventListener('click', () => { const l = $('#legend'); if (l.hidden) renderLegend(); l.hidden = !l.hidden; });
+$('#legend').addEventListener('click', e => {
+  const b = e.target.closest('[data-lg]'); if (!b) return;
+  const t = b.dataset.lg;
+  if (t === 'overdue') setFilter(filter && filter.kind === 'overdue' ? null : { kind: 'overdue' });
+  else {
+    const on = filter && filter.kind === 'group' && filter.type === t && filter.name === b.dataset.g;
+    setFilter(on ? null : { kind: 'group', type: t, name: b.dataset.g });
+  }
+});
+$('#hintOk').addEventListener('click', () => { ui.hintHidden = true; saveUI(); $('#hint').hidden = true; });
+const physBtn = $('#physBtn');
+function syncPhys() { physBtn.classList.toggle('on', ui.physics); physBtn.setAttribute('aria-pressed', ui.physics); }
+physBtn.addEventListener('click', () => {
+  ui.physics = !ui.physics; saveUI(); syncPhys();
+  if (ui.physics) { sim.alpha = 0.7; toast('Tự sắp xếp: bật. Các node sẽ tự gom cụm theo nhóm và kết nối.', { plain: true, dur: 2600 }); }
+  else { sim.alpha = 0; for (const n of data.nodes) { n.vx = n.vy = 0; } scheduleSave(); toast('Tự sắp xếp: tắt. Node đứng yên đúng chỗ bạn thả.', { plain: true, dur: 2600 }); }
+  dirty();
+});
+$('#zIn').addEventListener('click', () => zoomAt({ x: cw / 2, y: ch / 2 }, 1.3));
+$('#zOut').addEventListener('click', () => zoomAt({ x: cw / 2, y: ch / 2 }, 1 / 1.3));
+$('#zPct').addEventListener('click', () => { const c = toWorld({ x: cw / 2, y: ch / 2 }); animateTo(c.x, c.y, 1, 420); });
+$('#zFit').addEventListener('click', () => fitView());
+function doLayout() {
+  if (!data.nodes.length) { toast('Chưa có node nào để dàn', { plain: true }); return; }
+  if (linkMode) exitLinkMode();
+  select(null); hoverNode = null;
+  snapshot(); relayout(true);
+  toast('Đã dàn đều các node', { action: 'Hoàn tác', onAction: undo });
+}
+$('#layoutBtn').addEventListener('click', doLayout);
+$('#empty').addEventListener('click', e => {
+  const b = e.target.closest('[data-empty]'); if (!b) return;
+  const v = b.dataset.empty;
+  if (v === 'p') openForm(null, 'person'); else if (v === 't') openForm(null, 'task');
+  else { snapshot(); loadSample(); }
+});
+
+/* ================= Keyboard ================= */
+const typing = el => el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+window.addEventListener('keydown', e => {
+  if (modal.open) {
+    if (e.key === 'Escape') { e.preventDefault(); if (modal.mode === 'form' && modal.id) openView(byId.get(modal.id)); else closeModal(); }
+    return;
+  }
+  if (typing(e.target)) return;
+  const k = e.key;
+  if ((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'z') { e.preventDefault(); undo(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (k === '/') { e.preventDefault(); if (cw < 760) $('#topbar').classList.add('searching'); q.focus(); }
+  else if (ui.tab === 'dash' && !['n', 'N', 'c', 'C', 'Escape'].includes(k)) return;
+  else if (k === 'Escape') { if (linkMode) exitLinkMode(); else if (filter) setFilter(null); else if (sel) select(null); closePopovers(); }
+  else if ((k === 'Delete' || k === 'Backspace') && sel) {
+    e.preventDefault();
+    if (sel.kind === 'node') { const n = selNode(); n && deleteNode(n); } else { const l = selLink(); l && removeLink(l); }
+  }
+  else if (k === 'Enter' && selNode()) openView(selNode());
+  else if (k === 'f' || k === 'F') fitView();
+  else if (k === 'r' || k === 'R') doLayout();
+  else if (k === '+' || k === '=') zoomAt({ x: cw / 2, y: ch / 2 }, 1.25);
+  else if (k === '-' || k === '_') zoomAt({ x: cw / 2, y: ch / 2 }, 0.8);
+  else if (k === 'n' || k === 'N') openForm(null, 'person');
+  else if (k === 'c' || k === 'C') openForm(null, 'task');
+  else if (k === 'l' || k === 'L') { const n = selNode(); if (n) enterLinkMode(n); }
+});
+
+
+/* ================= Dashboard ================= */
+const dashEl = $('#dash'), dtip = $('#dtip');
+const ALL = '__all__';
+const STATUS_ORDER = ['doing', 'paused', 'todo', 'done'];
+const PRIO_ORDER = ['urgent', 'high', 'med', 'low'];
+const WD = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'], WDS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+let tips = [], tipCur = -1, dashMore = false, dashRaf = 0;
+const groupLabel = g => g || 'Chưa phân nhóm';
+function applyTab() {
+  const d = ui.tab === 'dash';
+  document.body.classList.toggle('is-dash', d);
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === ui.tab)));
+  hideTip();
+  if (d) { if (linkMode) exitLinkMode(); hoverNode = null; renderDash(); }
+  else { resize(); dirty(); }
+}
+function setTab(t) {
+  if (t === ui.tab) return;
+  ui.tab = t; saveUI(); applyTab();
+  if (t === 'dash') dashEl.scrollTop = 0;
+}
+$$('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+function scheduleDash() { if (ui.tab !== 'dash') return; cancelAnimationFrame(dashRaf); dashRaf = requestAnimationFrame(renderDash); }
+const tasksOf = p => [...(adj.get(p.id) || [])].map(id => byId.get(id)).filter(Boolean);
+const peopleOf = t => [...(adj.get(t.id) || [])].map(id => byId.get(id)).filter(Boolean);
+function dashScope() {
+  const f = ui.dashF;
+  const groupsP = new Set(data.nodes.filter(n => n.type === 'person').map(groupName));
+  const groupsT = new Set(data.nodes.filter(n => n.type === 'task').map(groupName));
+  if (f.dept !== ALL && !groupsP.has(f.dept)) f.dept = ALL;
+  if (f.proj !== ALL && !groupsT.has(f.proj)) f.proj = ALL;
+  let P = data.nodes.filter(n => n.type === 'person'), T = data.nodes.filter(n => n.type === 'task');
+  if (f.proj !== ALL) T = T.filter(t => groupName(t) === f.proj);
+  if (f.dept !== ALL) {
+    P = P.filter(p => groupName(p) === f.dept);
+    const ids = new Set(P.map(p => p.id));
+    T = T.filter(t => peopleOf(t).some(p => ids.has(p.id)));
+  }
+  return { P, T, Tset: new Set(T.map(t => t.id)), groupsP: [...groupsP], groupsT: [...groupsT] };
+}
+const tip = o => { tips.push(o); return tips.length - 1; };
+const pctOf = (a, b) => b ? Math.round(a / b * 100) : 0;
+const progOf = t => t.status === 'done' ? 100 : (t.progress || 0);
+const avatar = (p, extra = '') => `<span class="av" style="--c:${colorOf(p.dept)}"${extra}>${esc(initials(p.name))}</span>`;
+function avatars(list, max = 3) {
+  if (!list.length) return '<span class="opill gray">Chưa giao</span>';
+  return `<span class="avs">${list.slice(0, max).map(p => avatar(p, ` title="${esc(p.name)}"`)).join('')}${list.length > max ? `<span class="more">+${list.length - max}</span>` : ''}</span>`;
+}
+function niceTicks(max) {
+  if (max <= 4) return Array.from({ length: Math.max(1, max) + 1 }, (_, i) => i);
+  const step = Math.ceil(max / 4), top = step * Math.ceil(max / step), out = [];
+  for (let v = 0; v <= top; v += step) out.push(v);
+  return out;
+}
+function renderDash() {
+  if (ui.tab !== 'dash') return;
+  hideTip(); tips = [];
+  const scrollY = dashEl.scrollTop;
+  if (!data.nodes.length) {
+    dashEl.innerHTML = `<div class="dempty"><div class="empty-card"><h3>Chưa có số liệu để tổng hợp</h3><p>Thêm nhân sự và công việc, dashboard sẽ tự cập nhật theo dữ liệu của bạn.</p><div class="row-btns"><button class="btn" data-new="person"><span class="plus p">${ic('plus')}</span>Thêm nhân sự</button><button class="btn" data-new="task"><span class="plus t">${ic('plus')}</span>Thêm công việc</button></div></div></div>`;
+    return;
+  }
+  const { P, T, Tset, groupsP, groupsT } = dashScope();
+  const f = ui.dashF;
+  const open = T.filter(t => t.status !== 'done');
+  const done = T.length - open.length;
+  const over = T.filter(isOverdue).sort((a, b) => daysLeft(a.due) - daysLeft(b.due));
+  const soon = open.filter(t => { const d = daysLeft(t.due); return d !== null && d >= 0 && d <= 7; }).sort((a, b) => daysLeft(a.due) - daysLeft(b.due));
+  const unassigned = open.filter(t => !peopleOf(t).length);
+  const avgProg = T.length ? Math.round(T.reduce((s, t) => s + progOf(t), 0) / T.length) : 0;
+  const byStatus = { doing: [], paused: [], todo: [], done: [] };
+  T.forEach(t => byStatus[t.status].push(t));
+  // per person load, counted only on tasks in scope
+  const load = P.map(p => {
+    const ts = tasksOf(p).filter(t => Tset.has(t.id));
+    const by = { doing: [], paused: [], todo: [], done: [] }; ts.forEach(t => by[t.status].push(t));
+    return { p, ts, by, open: ts.length - by.done.length, over: ts.filter(isOverdue) };
+  }).sort((a, b) => b.open - a.open || b.over.length - a.over.length || b.ts.length - a.ts.length || a.p.name.localeCompare(b.p.name, 'vi'));
+  const idle = load.filter(r => !r.open);
+  const maxLoad = Math.max(1, ...load.map(r => r.ts.length));
+  const today = new Date();
+  const dateStr = `${WD[today.getDay()]}, ${fmtDate(ymd(today))}`;
+  const fLabel = [f.proj !== ALL ? `dự án ${groupLabel(f.proj)}` : '', f.dept !== ALL ? `phòng ${groupLabel(f.dept)}` : ''].filter(Boolean).join(', ');
+
+  // ---------- header + filters (one row, scopes everything below)
+  const opt = (v, cur, label) => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(label)}</option>`;
+  const projOpts = [opt(ALL, f.proj, 'Tất cả')].concat(groupsT.sort((a, b) => a.localeCompare(b, 'vi')).map(g => opt(g, f.proj, groupLabel(g)))).join('');
+  const deptOpts = [opt(ALL, f.dept, 'Tất cả')].concat(groupsP.sort((a, b) => a.localeCompare(b, 'vi')).map(g => opt(g, f.dept, groupLabel(g)))).join('');
+  let h = `<div class="dwrap">
+  <div class="dhead"><div><h2>Tổng quan công việc</h2><div class="dsub">${dateStr}${fLabel ? `, đang lọc theo ${esc(fLabel)}` : `, ${P.length} nhân sự và ${T.length} công việc`}</div></div>
+    <div class="dfilters">
+      <label class="dsel"><span>Dự án</span><select data-f="proj" class="${f.proj !== ALL ? 'on' : ''}" style="--pl:62px" aria-label="Lọc theo dự án">${projOpts}</select></label>
+      <label class="dsel"><span>Phòng ban</span><select data-f="dept" class="${f.dept !== ALL ? 'on' : ''}" style="--pl:88px" aria-label="Lọc theo phòng ban">${deptOpts}</select></label>
+      ${fLabel ? '<button class="dclear" data-clear="1">Bỏ lọc</button>' : ''}
+    </div></div>`;
+
+  // ---------- KPI row
+  const nearest = soon[0];
+  h += `<div class="kpis">
+    <div class="kpi"><div class="kl">${ic('task')}Tổng công việc</div><div class="kv">${T.length}</div><div class="kc">${byStatus.doing.length} đang làm, ${byStatus.todo.length} chưa bắt đầu${byStatus.paused.length ? `, ${byStatus.paused.length} tạm dừng` : ''}</div></div>
+    <div class="kpi"><div class="kl">${ic('check')}Đã hoàn thành</div><div class="kv">${pctOf(done, T.length)}<small>%</small></div><div class="kmeter"><i style="width:${pctOf(done, T.length)}%"></i></div><div class="kc">${done}/${T.length} việc</div></div>
+    <div class="kpi"><div class="kl">${ic('chart')}Tiến độ trung bình</div><div class="kv">${avgProg}<small>%</small></div><div class="kmeter"><i style="width:${avgProg}%"></i></div><div class="kc">Việc đã xong tính 100%</div></div>
+    <button class="kpi" data-jump="attn"><div class="kl"><span style="color:var(--danger);display:flex">${ic('alert')}</span>Quá hạn</div><div class="kv">${over.length}</div><div class="kc">${over.length ? `Trễ lâu nhất ${-daysLeft(over[0].due)} ngày` : 'Không có việc trễ hạn'}</div></button>
+    <button class="kpi" data-jump="dl"><div class="kl"><span style="color:var(--warn);display:flex">${ic('calendar')}</span>Đến hạn trong 7 ngày</div><div class="kv">${soon.length}</div><div class="kc">${nearest ? `Gần nhất: ${esc(short(nearest.name, 26))}` : 'Tuần này không có hạn chót'}</div></button>
+    <div class="kpi"><div class="kl">${ic('user')}Chưa giao người</div><div class="kv">${unassigned.length}</div><div class="kc">${idle.length} nhân sự chưa có việc đang mở</div></div>
+  </div>`;
+
+  // ---------- workload by person
+  const sCol = s => STATUS[s].color;
+  let wl = '';
+  for (const r of load) {
+    const segs = STATUS_ORDER.filter(s => r.by[s].length).map(s => `<i style="--c:${sCol(s)};--n:${r.by[s].length}" data-tip="${tip({ value: `${r.by[s].length} việc`, label: STATUS[s].label, color: sCol(s), list: r.by[s].map(t => t.name) })}"></i>`).join('');
+    const aria = `${r.p.name}: ${r.ts.length} việc, ${r.open} chưa xong${r.over.length ? `, ${r.over.length} quá hạn` : ''}`;
+    wl += `<div class="wrow rowbtn" role="button" tabindex="0" data-open="${r.p.id}" aria-label="${esc(aria)}">
+      <div class="who">${avatar(r.p)}<div class="nm2"><b>${esc(r.p.name)}</b><span>${esc(r.p.role || groupLabel(r.p.dept))}</span></div></div>
+      <div class="wbar">${r.ts.length ? `<div class="bars" style="--w:${(r.ts.length / maxLoad).toFixed(4)}">${segs}</div>` : ''}<span class="wv${r.ts.length ? '' : ' zero'}">${r.ts.length ? `${r.open}/${r.ts.length} việc` : 'Chưa có việc'}${r.over.length ? `<span class="opill">${ic('alert')}${r.over.length} quá hạn</span>` : ''}</span></div>
+    </div>`;
+  }
+  const legend = `<div class="lgd">${STATUS_ORDER.map(s => `<span><i style="background:${sCol(s)}"></i>${STATUS[s].label}</span>`).join('')}</div>`;
+  const cardLoad = `<div class="card" id="dc-load"><div class="ch"><h3>Khối lượng việc theo nhân sự</h3><span class="cs">chưa xong / tổng</span></div>${legend}${wl || '<div class="empty-line">Không có nhân sự trong phạm vi lọc.</div>'}</div>`;
+
+  // ---------- status split + priority
+  const segAll = STATUS_ORDER.filter(s => byStatus[s].length).map(s => {
+    const n = byStatus[s].length, sh = pctOf(n, T.length), dark = s === 'todo' || s === 'paused';
+    return `<i class="${dark ? 'dk' : ''}" style="--c:${sCol(s)};--n:${n}" data-tip="${tip({ value: `${n} việc, ${sh}%`, label: STATUS[s].label, color: sCol(s), list: byStatus[s].map(t => t.name) })}">${sh >= 9 ? sh + '%' : ''}</i>`;
+  }).join('');
+  const openByPrio = PRIO_ORDER.map(k => ({ k, ts: open.filter(t => t.priority === k) }));
+  const maxP = Math.max(1, ...openByPrio.map(o => o.ts.length));
+  const prio = openByPrio.map(o => `<div class="prio"><span class="pl"><span style="color:${PRIORITY[o.k].color};display:flex">${ic('flag')}</span>${PRIORITY[o.k].label}</span><div class="hb" data-tip="${tip({ value: `${o.ts.length} việc`, label: `Ưu tiên ${PRIORITY[o.k].label.toLowerCase()}, chưa xong`, color: TASK, list: o.ts.map(t => t.name) })}"><i style="--w:${(o.ts.length / maxP).toFixed(4)}"></i><span>${o.ts.length}</span></div></div>`).join('');
+  const cardStatus = `<div class="card"><div class="ch"><h3>Tình trạng công việc</h3><span class="cs">${T.length} việc</span></div>
+    ${T.length ? `<div class="seg" role="img" aria-label="${esc(STATUS_ORDER.map(s => `${STATUS[s].label} ${byStatus[s].length}`).join(', '))}">${segAll}</div><div class="lgd seglgd">${STATUS_ORDER.filter(s => byStatus[s].length).map(s => `<span><i style="background:${sCol(s)}"></i>${STATUS[s].label}</span>`).join('')}</div>` : '<div class="empty-line">Chưa có công việc.</div>'}
+    <div class="subh">Ưu tiên của việc chưa xong</div>${prio}</div>`;
+
+  // ---------- projects
+  const projMap = new Map();
+  for (const t of T) { const g = groupName(t); if (!projMap.has(g)) projMap.set(g, []); projMap.get(g).push(t); }
+  const projs = [...projMap.entries()].map(([g, ts]) => ({
+    g, ts, done: ts.filter(t => t.status === 'done').length, over: ts.filter(isOverdue).length,
+    prog: Math.round(ts.reduce((s, t) => s + progOf(t), 0) / ts.length),
+    people: new Set(ts.flatMap(t => peopleOf(t).map(p => p.id))).size
+  })).sort((a, b) => b.ts.length - a.ts.length || a.g.localeCompare(b.g, 'vi'));
+  const cardProj = `<div class="card"><div class="ch"><h3>Tiến độ theo dự án</h3><span class="cs">bấm một dự án để lọc</span></div>
+    ${projs.map(o => `<div class="prow rowbtn${f.proj === o.g ? ' on' : ''}" role="button" tabindex="0" data-proj="${esc(o.g)}" aria-label="${esc(`${groupLabel(o.g)}: tiến độ ${o.prog}%, ${o.done}/${o.ts.length} việc xong`)}">
+      <div class="pname"><span class="pdot2" style="--c:${colorOf(o.g)}"></span><div class="nm2"><b>${esc(groupLabel(o.g))}</b><span>${o.ts.length} việc, ${o.people} người tham gia</span></div></div>
+      <div class="pmeter"><div class="tr"><i style="width:${o.prog}%"></i></div><b>${o.prog}%</b></div>
+      <div class="pbadges"><span class="cnt">${o.done}/${o.ts.length} xong</span>${o.over ? `<span class="opill">${ic('alert')}${o.over} quá hạn</span>` : ''}</div>
+    </div>`).join('') || '<div class="empty-line">Chưa có công việc.</div>'}</div>`;
+
+  // ---------- deadlines, next 14 days
+  const DAYS = 14, cols = [];
+  cols.push({ over: true, ts: open.filter(t => daysLeft(t.due) !== null && daysLeft(t.due) < 0), top: 'Trễ', bot: 'hạn' });
+  for (let d = 0; d < DAYS; d++) {
+    const dt = new Date(); dt.setDate(dt.getDate() + d);
+    cols.push({ d, today: d === 0, ts: open.filter(t => daysLeft(t.due) === d), top: String(dt.getDate()).padStart(2, '0'), bot: d === 0 ? 'Nay' : WDS[dt.getDay()], full: `${WD[dt.getDay()]}, ${fmtDate(ymd(dt)).slice(0, 5)}` });
+  }
+  const maxD = Math.max(1, ...cols.map(c => c.ts.length));
+  const ticks = niceTicks(maxD), topV = ticks[ticks.length - 1];
+  const noDue = open.filter(t => !t.due).length, later = open.filter(t => daysLeft(t.due) >= DAYS).length;
+  const cardDl = `<div class="card" id="dc-dl"><div class="ch"><h3>Hạn chót 14 ngày tới</h3><span class="cs">việc chưa xong đến hạn mỗi ngày</span></div>
+    <div class="cc"><div class="cc-plot">${ticks.map(v => `<div class="gl${v === 0 ? ' base' : ''}" style="bottom:${v / topV * 100}%"><span>${v}</span></div>`).join('')}
+      <div class="cc-cols">${cols.map(c => `<div class="cc-col${c.over ? ' over' : ''}${c.today ? ' today' : ''}" data-tip="${tip({ value: `${c.ts.length} việc`, label: c.over ? 'Đã quá hạn, chưa xong' : `Đến hạn ${c.full}`, color: c.over ? '#D9363E' : TASK, list: c.ts.map(t => t.name) })}">${c.ts.length ? `<b style="height:${c.ts.length / topV * 100}%"></b>` : ''}</div>`).join('')}</div></div>
+      <div class="cc-x">${cols.map(c => `<div class="${c.over ? 'over' : ''}${c.today ? ' today' : ''}"><b>${c.top}</b>${c.bot}</div>`).join('')}</div></div>
+    ${noDue || later ? `<div class="cnote">${[later ? `${later} việc có hạn xa hơn 14 ngày` : '', noDue ? `${noDue} việc chưa đặt hạn chót` : ''].filter(Boolean).join(', ')}.</div>` : ''}</div>`;
+
+  // ---------- attention list
+  const attn = [], seen = new Set();
+  const push = (t, kind) => { if (seen.has(t.id)) return; seen.add(t.id); attn.push({ t, kind }); };
+  over.forEach(t => push(t, 'over'));
+  open.filter(t => { const d = daysLeft(t.due); return d !== null && d >= 0 && d <= 3; }).sort((a, b) => daysLeft(a.due) - daysLeft(b.due)).forEach(t => push(t, 'soon'));
+  unassigned.forEach(t => push(t, 'none'));
+  const shown = dashMore ? attn : attn.slice(0, 8);
+  const badge = ({ t, kind }) => kind === 'over' ? `<span class="opill">${ic('alert')}${cap(dueText(t))}</span>` : kind === 'soon' ? `<span class="opill warn">${ic('calendar')}${cap(dueText(t))}</span>` : `<span class="opill gray">${ic('user')}Chưa giao người</span>`;
+  const cardAttn = `<div class="card" id="dc-attn"><div class="ch"><h3>Việc cần chú ý</h3><span class="cs">quá hạn, đến hạn trong 3 ngày, chưa giao người</span></div>
+    ${attn.length ? shown.map(a => `<div class="arow rowbtn" role="button" tabindex="0" data-open="${a.t.id}" aria-label="${esc(a.t.name)}">${badge(a)}<div class="nm2"><b>${esc(a.t.name)}</b><span>${esc([groupLabel(a.t.project), STATUS[a.t.status].label].join(', '))}</span></div>${avatars(peopleOf(a.t))}<span class="pc">${progOf(a.t)}%</span></div>`).join('')
+      + (attn.length > 8 ? `<button class="amore" data-more="1">${dashMore ? 'Thu gọn' : `Xem thêm ${attn.length - 8} việc`}</button>` : '')
+      : `<div class="allgood">${ic('check')}Không có việc nào quá hạn, sắp đến hạn hay chưa giao người.</div>`}</div>`;
+
+  // ---------- departments
+  const deptMap = new Map();
+  for (const r of load) { const g = groupName(r.p); if (!deptMap.has(g)) deptMap.set(g, []); deptMap.get(g).push(r); }
+  const depts = [...deptMap.entries()].map(([g, rs]) => {
+    const openSet = new Set(), overSet = new Set();
+    rs.forEach(r => r.ts.forEach(t => { if (t.status !== 'done') openSet.add(t.id); if (isOverdue(t)) overSet.add(t.id); }));
+    const sumOpen = rs.reduce((s, r) => s + r.open, 0);
+    return { g, n: rs.length, open: openSet.size, avg: rs.length ? sumOpen / rs.length : 0, over: overSet.size };
+  }).sort((a, b) => b.open - a.open || a.g.localeCompare(b.g, 'vi'));
+  const cardDept = `<div class="card"><div class="ch"><h3>Theo phòng ban</h3><span class="cs">bấm một dòng để lọc</span></div>
+    <table class="dtable"><thead><tr><th>Phòng ban</th><th>Người</th><th>Việc mở</th><th>TB/người</th><th>Quá hạn</th></tr></thead><tbody>
+    ${depts.map(o => `<tr class="rowbtn${f.dept === o.g ? ' on' : ''}" tabindex="0" data-dept="${esc(o.g)}"><td><span class="dn"><span class="pdot2" style="--c:${colorOf(o.g)}"></span>${esc(groupLabel(o.g))}</span></td><td>${o.n}</td><td>${o.open}</td><td>${o.avg.toFixed(1).replace('.', ',')}</td><td>${o.over ? `<span class="opill">${ic('alert')}${o.over}</span>` : '0'}</td></tr>`).join('')}
+    </tbody></table>
+    ${idle.length ? `<div class="subh">Nhân sự chưa có việc đang mở</div><div class="idle">${idle.map(r => `<button data-open="${r.p.id}">${avatar(r.p)}${esc(r.p.name)}</button>`).join('')}</div>` : ''}</div>`;
+
+  h += `<div class="dgrid"><div class="dcol">${cardLoad}${cardProj}${cardAttn}</div><div class="dcol">${cardStatus}${cardDl}${cardDept}</div></div></div>`;
+  dashEl.innerHTML = h;
+  dashEl.scrollTop = scrollY;
+}
+/* tooltip: values lead, labels follow; names are inserted as text, never as HTML */
+function showTip(i, x, y) {
+  const o = tips[i]; if (!o) return hideTip();
+  if (tipCur !== i) {
+    tipCur = i; dtip.replaceChildren();
+    const v = document.createElement('div'); v.className = 'tv'; v.textContent = o.value;
+    const l = document.createElement('div'); l.className = 'tl';
+    const key = document.createElement('i'); key.style.background = o.color || INK;
+    l.append(key, document.createTextNode(o.label));
+    dtip.append(v, l);
+    if (o.list && o.list.length) {
+      const ul = document.createElement('ul');
+      o.list.slice(0, 6).forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.append(li); });
+      if (o.list.length > 6) { const li = document.createElement('li'); li.textContent = `và ${o.list.length - 6} việc khác`; ul.append(li); }
+      dtip.append(ul);
+    }
+    dtip.hidden = false;
+  }
+  const w = dtip.offsetWidth, hh = dtip.offsetHeight;
+  let tx = x + 14, ty = y + 16;
+  if (tx + w > innerWidth - 8) tx = x - w - 14;
+  if (ty + hh > innerHeight - 8) ty = y - hh - 12;
+  dtip.style.transform = `translate(${Math.max(8, tx)}px,${Math.max(8, ty)}px)`;
+}
+function hideTip() { tipCur = -1; dtip.hidden = true; }
+dashEl.addEventListener('pointermove', e => { const el = e.target.closest('[data-tip]'); if (el) showTip(+el.dataset.tip, e.clientX, e.clientY); else hideTip(); });
+dashEl.addEventListener('pointerleave', hideTip);
+dashEl.addEventListener('scroll', hideTip, { passive: true });
+dashEl.addEventListener('change', e => {
+  const sEl = e.target.closest('select[data-f]'); if (!sEl) return;
+  ui.dashF[sEl.dataset.f] = sEl.value; saveUI(); renderDash();
+});
+dashEl.addEventListener('click', e => {
+  const t = e.target;
+  const o = t.closest('[data-open]'); if (o) { const n = byId.get(o.dataset.open); if (n) openView(n); return; }
+  const pj = t.closest('[data-proj]'); if (pj) { ui.dashF.proj = ui.dashF.proj === pj.dataset.proj ? ALL : pj.dataset.proj; saveUI(); renderDash(); return; }
+  const dp = t.closest('[data-dept]'); if (dp) { ui.dashF.dept = ui.dashF.dept === dp.dataset.dept ? ALL : dp.dataset.dept; saveUI(); renderDash(); return; }
+  if (t.closest('[data-clear]')) { ui.dashF = { proj: ALL, dept: ALL }; saveUI(); renderDash(); return; }
+  if (t.closest('[data-more]')) { dashMore = !dashMore; renderDash(); return; }
+  const j = t.closest('[data-jump]'); if (j) { const c = $(j.dataset.jump === 'attn' ? '#dc-attn' : '#dc-dl', dashEl); if (c) c.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); return; }
+  const nw = t.closest('[data-new]'); if (nw) openForm(null, nw.dataset.new);
+});
+dashEl.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.rowbtn')) { e.preventDefault(); e.target.click(); }
+});
+
+/* ================= Boot ================= */
+function loadSample() {
+  data = sampleData(); sel = null; filter = null; if (linkMode) exitLinkMode();
+  rebuild();
+  relayout(false);
+  // gentle reveal
+  for (const n of data.nodes) { n.s = 0.01; }
+  dirty();
+}
+loadUI(); syncPhys();
+resize();
+const had = loadData();
+if (had) {
+  rebuild(); for (const n of data.nodes) { n.r = n.rt; }
+  if (data.layoutV !== 3) relayout(false);   // data from an older layout: spread it over the full screen once
+  else fitView(false);
+} else {
+  loadSample();
+}
+if (!ui.hintHidden) $('#hint').hidden = false;
+if (ui.tab === 'dash') applyTab();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { zw1 = zw2 = 0; dirty(); });
+requestAnimationFrame(frame);
+
+// expose a tiny debug handle for testing in devtools
+window.nodetodo = { get data() { return data; }, cam, fitView, setTab };
+})();
+</script>
+</body>
+</html>
